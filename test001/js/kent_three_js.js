@@ -1,10 +1,11 @@
 var camer, scene, renderer, controls;
+var stats;
 var coreBall, coreBallShape, coreBallMaterial;
 init();
 render();
 
 function init(){
-	// basis
+// basis
 	var info = document.createElement( 'div' );
 	info.style.position = 'absolute';
 	info.style.top = '10px';
@@ -20,6 +21,12 @@ function init(){
 	renderer.setPixelRatio( window.devicePixelRatio );
 	renderer.setSize( window.innerWidth, window.innerHeight );
 	document.body.appendChild( renderer.domElement );
+
+	// Stats
+	stats = new Stats();
+	stats.domElement.style.position = 'absolute';
+	stats.domElement.style.top = '0px';
+	info.appendChild( stats.domElement );
 
 	scene = new THREE.Scene();
 
@@ -153,11 +160,10 @@ function init(){
 }
 
 function render(){
-
 	requestAnimationFrame( render );
 
 	controls.update();
 
 	renderer.render( scene, camera );
-
+	stats.update();
 }
