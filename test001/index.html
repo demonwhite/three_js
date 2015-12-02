@@ -21,6 +21,32 @@
 	<script type="text/javascript" src="js/three.min.js"></script>
 	<script src="js/src/TrackballControls.js"></script>
 	<script src="js/src/stats.min.js"></script>
+	
+	<script type="x-shader/x-vertex" id="vs">
+	// *VERTEX SHADER*
+	varying vec4 col;
+	uniform vec4 color_uni;
+	void main(){
+		if (position.x < 0.0) {
+			col = vec4 (1.0, 0.8, 0.32, 1.0);
+		}else if (position.x < 0.5 && position.y < 0.4){
+			col = vec4 (0.8, 0.2, 1.0, 1.0);
+		}else{
+			col = color_uni;
+		}
+		gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+	}
+	</script>
+	<script type="x-shader/x-fragment" id="fs">
+	// *FRAGMENT SHADER*
+	varying vec4 col;
+	void main(){
+		gl_FragColor = col;
+	}
+	</script>
+
 	<script type="text/javascript" src="js/kent_three_js.js"></script>
+
+
 </body>
 </html>
