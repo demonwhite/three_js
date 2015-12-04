@@ -3,6 +3,8 @@ var stats;
 var coreBall, coreBallShape, coreBallMaterial;
 init();
 render();
+// Sound
+
 
 function init(){
 // basis info
@@ -20,6 +22,7 @@ function init(){
 	renderer.setClearColor( 0x222222 );
 	renderer.setPixelRatio( window.devicePixelRatio );
 	renderer.setSize( window.innerWidth, window.innerHeight );
+	renderer.domElement.id = "canvas";
 	document.body.appendChild( renderer.domElement );
 // Shaders
 	var shaderTest = {
@@ -60,7 +63,6 @@ function init(){
 	coreBallShader = new THREE.ShaderMaterial(shaderTest);
 	coreBall = new THREE.Mesh(coreBallShape, coreBallShader);
 	scene.add(coreBall);
-	
 }
 
 function render(){
@@ -69,7 +71,6 @@ function render(){
 	requestAnimationFrame( render );
 
 	controls.update();
-
 	renderer.render( scene, camera );
 	stats.update();
 }

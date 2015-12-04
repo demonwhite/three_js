@@ -17,10 +17,32 @@
 			}
 		</style>
 </head>
+<style>
+	div#audio-player {
+		width: 500px;
+		height: 60px;
+		background-color: #000000;
+		padding: 5px;
+		margin: 50px auto;
+	}
+	div#audio-player > div > audio {
+		width: 500px;
+		background-color: #000;
+		float: left;
+	}
+	div#audio-player > canvas {
+		width: 500px;
+		height: 30px;
+		background-color: #002d3c;
+		float: left;
+	}
+</style>
 <body>
+
+	<!-- <script type="text/javascript" src="js/soundControl.js"></script> -->
 	<script type="text/javascript" src="js/three.min.js"></script>
-	<script src="js/src/TrackballControls.js"></script>
-	<script src="js/src/stats.min.js"></script>
+	<script src="js/lib/TrackballControls.js"></script>
+	<script src="js/lib/stats.min.js"></script>
 	
 	<script type="x-shader/x-vertex" id="vs">
 	// *VERTEX SHADER*
@@ -44,9 +66,11 @@
 		gl_FragColor = col;
 	}
 	</script>
-
-	<script type="text/javascript" src="js/kent_three_js.js"></script>
-
-
+	<script type="text/javascript" src="js/smControl.js"></script>
+	<!-- <script type="text/javascript" src="js/kent_three_js.js"></script> -->
+<div id="audio-player">
+	<div id="audio"></div>
+	<canvas id="bar"></canvas>
+</div>
 </body>
 </html>

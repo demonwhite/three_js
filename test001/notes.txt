@@ -9,7 +9,9 @@ http://www.patrick-wied.at/blog/how-to-create-audio-visualizations-with-javascri
 Making Audio Reactive Visuals
 http://www.airtightinteractive.com/2013/10/making-audio-reactive-visuals/
 -
-
+HTML Canvas Deep Dive (eBook)
+http://joshondesign.com/p/books/canvasdeepdive/chapter12.html
+-
 
 ---------------------------------------------------------------------------------------------------------------------
 *GIT*
@@ -22,3 +24,13 @@ https://github.com/macobo/WebGL-Audio-Visualization
 -
 THREENODE.js
 http://badassjs.com/post/12885773103/threenodesjs-a-visual-webgl-scene-editor
+-
+soundviz
+https://github.com/drojdjou/squareroot.js/tree/gl/demo/soundviz
+-
+webaudiox
+https://github.com/jeromeetienne/webaudiox
+-
+SoundManager 2
+http://www.schillmania.com/projects/soundmanager2/
+-
