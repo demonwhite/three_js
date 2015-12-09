@@ -69,7 +69,7 @@ function init(){
 function render(){
 	coreBall.rotation.x += 0.005;
 	coreBall.rotation.y += 0.005;
-	console.log(dancer.getSpectrum()[10]);
+	if( dancer.isPlaying() ) console.log(dancer.getSpectrum()[10]);
 	requestAnimationFrame( render );
 
 	controls.update();
