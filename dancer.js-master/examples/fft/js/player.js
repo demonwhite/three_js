@@ -18,6 +18,7 @@
   kick = dancer.createKick({
     onKick: function () {
       ctx.fillStyle = '#ff0077';
+      ctx.x -= 10;
     },
     offKick: function () {
       ctx.fillStyle = '#666';

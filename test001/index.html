@@ -15,44 +15,86 @@
 			a {
 				color: #f80;
 			}
+				div#audio-player {
+				width: 500px;
+				height: 60px;
+				background-color: #000000;
+				padding: 5px;
+				margin: 50px auto;
+			}
+			div#audio-player > div > audio {
+				width: 500px;
+				background-color: #000;
+				float: left;
+			}
+			div#audio-player > canvas {
+				width: 500px;
+				height: 30px;
+				background-color: #002d3c;
+				float: left;
+			}
+
+			#loading {
+			    font-size: 20px;
+			    color: #fff;
+			    width: 100px;
+			    margin-top: 100px;
+			    position: absolute;
+			    background-color: #111;
+			    padding: 10px;
+			    -webkit-border-radius: 10px;
+			    -moz-border-radius: 10px;
+			    border-radius: 10px;
+			    opacity: 0.9;
+			    border: 1px solid #ccc;
+			    text-align: center;
+			}
+
+			#loading a {
+			    color: #fff;
+			    text-shadow: 0 0 10px #fff;
+			    text-decoration: none;
+			}
+
+			#loading p{
+			    color: #fff;
+			    font-size: 18px;
+			}
+
+			#togglefft {
+			    float: left;
+			    margin: 20px 0 0 10px;
+			    color: #ff0077;
+			}
+
+			#fft { 
+			    display: none;
+			    margin: 2px 0 0 10px;
+			    float: left;    
+			}
+
 		</style>
 </head>
-<style>
-	div#audio-player {
-		width: 500px;
-		height: 60px;
-		background-color: #000000;
-		padding: 5px;
-		margin: 50px auto;
-	}
-	div#audio-player > div > audio {
-		width: 500px;
-		background-color: #000;
-		float: left;
-	}
-	div#audio-player > canvas {
-		width: 500px;
-		height: 30px;
-		background-color: #002d3c;
-		float: left;
-	}
-</style>
 <body>
+	
+	<!-- DOM Structure  -->
+	<a id="togglefft" href="#">toggle FFT spectrum</a>
+	<canvas id="fft" height="50" width="256"></canvas>
+	<div id="loading">Loading . . .</div>
 
-	<!-- <script type="text/javascript" src="js/soundControl.js"></script> -->
 	<script type="text/javascript" src="js/three.min.js"></script>
 	<script src="js/lib/TrackballControls.js"></script>
 	<script src="js/lib/stats.min.js"></script>
-	
+	<!-- Shaders -->
 	<script type="x-shader/x-vertex" id="vs">
 	// *VERTEX SHADER*
 	varying vec4 col;
 	uniform vec4 color_uni;
 	void main(){
 		if (position.x < 0.0) {
-			col = vec4 (1.0, 0.8, 0.32, 1.0);
-		}else if (position.x < 0.5 && position.y < 0.4){
-			col = vec4 (0.8, 0.2, 1.0, 1.0);
+			col = vec4 (0.8, 0.8805, 0.6222, 1.0);
+		}else if (position.z < 0.8 && position.y < 0.4){
+			col = vec4 (0.7, 0.5, 1.0, 1.0);
 		}else{
 			col = color_uni;
 		}
@@ -66,11 +108,32 @@
 		gl_FragColor = col;
 	}
 	</script>
-	<script type="text/javascript" src="js/smControl.js"></script>
-	<!-- <script type="text/javascript" src="js/kent_three_js.js"></script> -->
-<div id="audio-player">
-	<div id="audio"></div>
-	<canvas id="bar"></canvas>
-</div>
+	<!-- Web Audio Kit basic tests -->
+	<!-- <script type="text/javascript" src="js/smControl.js"></script> -->
+	<!-- 
+	<div id="audio-player">
+		<div id="audio"></div>
+		<canvas id="bar"></canvas> 
+	</div>
+	-->
+
+	<!-- Dancer.js -->
+	<script src="js/dancer_js/src/dancer.js"></script>
+	<script src="js/dancer_js/src/support.js"></script>
+	<script src="js/dancer_js/src/kick.js"></script>
+	<script src="js/dancer_js/src/adapterWebAudio.js"></script>
+	<script src="js/dancer_js/src/adapterMoz.js"></script>
+	<script src="js/dancer_js/src/adapterFlash.js"></script>
+	<script src="js/dancer_js/lib/fft.js"></script>
+	<script src="js/dancer_js/lib/flash_detect.js"></script>
+	<script src="js/dancer_js/plugins/dancer.fft.js"></script>
+	
+	<!-- Kent's stuff -->
+	<script type="text/javascript" src="js/loadAudio.js"></script>
+	<script type="text/javascript" src="js/kent_three_js.js"></script>
+	<script type="text/javascript" src="js/fftDisplay.js"></script>
+	
+
+
 </body>
 </html>

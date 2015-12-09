@@ -8,7 +8,7 @@ osc.connect(audioCtx.destination);
 // osc.start();
 
 var audio = new Audio();
-audio.src = "sounds/sample.wav";
+audio.src = "sounds/no_escape.mp3";
 audio.controls = true;
 audio.loop = false;
 audio.autoplay = true;
