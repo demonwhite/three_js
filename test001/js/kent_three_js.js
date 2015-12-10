@@ -1,6 +1,6 @@
 var camer, scene, renderer, controls;
 var stats;
-var coreBall, coreBallShape, coreBallMaterial;
+var coreBall, coreBallShape, coreBallMaterial, refBall;
 init();
 render();
 // Sound
@@ -45,7 +45,7 @@ function init(){
 // Scene
 	scene = new THREE.Scene();
 // Camera
-	camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 1000 );
+	camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 10000 );
 	camera.position.set( 0, 0, 500 );
 // View Controller
 	controls = new THREE.TrackballControls( camera, renderer.domElement );
@@ -59,20 +59,47 @@ function init(){
 	scene.add( light );
 
 // create the core ball here
-	coreBallShape = new THREE.IcosahedronGeometry(100, 1);
+	coreBallShape = new THREE.IcosahedronGeometry(100, 2);
+	refBall = coreBallShape.clone();
+	// numVertex = coreBallShape.vertices;
 	coreBallMaterial = new THREE.MeshBasicMaterial({color: 0x928852, wireframe: true})
 	coreBallShader = new THREE.ShaderMaterial(shaderTest);
-	coreBall = new THREE.Mesh(coreBallShape, coreBallShader);
+	coreBall = new THREE.Mesh(coreBallShape, coreBallMaterial);
 	scene.add(coreBall);
 }
 
 function render(){
-	coreBall.rotation.x += 0.005;
-	coreBall.rotation.y += 0.005;
-	if( dancer.isPlaying() ) console.log(dancer.getSpectrum()[10]);
+	// coreBall.rotation.x += 0.005;
+	// coreBall.rotation.y += 0.005;
+	// if( dancer.isPlaying() ) console.log(dancer.getSpectrum()[10]);
+	updateAudioData();
 	requestAnimationFrame( render );
-
 	controls.update();
-	renderer.render( scene, camera );
 	stats.update();
+	renderer.render( scene, camera );
+	
+}
+
+function updateAudioData(){
+	// Grabbing the FFT array from dancer fo parsing/analysing, pull reference from my OF project
+	var fftList = dancer.getSpectrum();
+
+	var ballVertices = coreBallShape.vertices,
+		numBallVertices = ballVertices.length,
+		refVertices = refBall.vertices;
+	for (var i = 0; i < numBallVertices; i++) {
+		var input = fftList[i]*100 || 0;
+		if (input <= 0.5) {
+			// console.log(input);
+		}else{
+			// ballVertices[i].multiply(new THREE.Vector3(input, input, input));
+		}
+	}
+	coreBallShape.verticesNeedUpdate = true;
+}
+
+// For debug
+document.addEventListener('click', testClick, false);
+function testClick() {
+	console.log('get some info!!');
 }

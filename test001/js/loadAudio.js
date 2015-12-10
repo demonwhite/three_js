@@ -9,13 +9,17 @@
 		flashJS  : 'dancer_js/lib/soundmanager2.js'
 	})
 	dancer = new Dancer();
+	dancer.isKick = false;
 	kick = dancer.createKick({
 		onKick: function (){
-
+			// console.log('on kick');
+			dancer.isKick = true;
 		},
 		offKick: function (){
-
-		}
+			// console.log('off kick');
+			dancer.isKick = false;
+		},
+		threshold: 0.25
 	});
 	kick.on();
 
