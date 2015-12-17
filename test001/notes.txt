@@ -12,6 +12,8 @@ http://www.airtightinteractive.com/2013/10/making-audio-reactive-visuals/
 HTML Canvas Deep Dive (eBook)
 http://joshondesign.com/p/books/canvasdeepdive/chapter12.html
 -
+Vertex displacement with a noise function using GLSL and three.js
+https://www.clicktorelease.com/blog/vertex-displacement-noise-3d-webgl-glsl-three-js
 
 ---------------------------------------------------------------------------------------------------------------------
 *GIT*

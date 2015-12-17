@@ -1,6 +1,7 @@
 var camer, scene, renderer, controls;
 var stats;
-var coreBall, coreBallShape, coreBallMaterial, refBall;
+var coreBall, coreBallShape, coreBallMaterial, refBall, shaderTest;
+var start = Date.now();
 init();
 render();
 // Sound
@@ -25,13 +26,17 @@ function init(){
 	renderer.domElement.id = "canvas";
 	document.body.appendChild( renderer.domElement );
 // Shaders
-	var shaderTest = {
-		uniforms: {
-			color_uni: {
-				type: "v4",
-				value: new THREE.Vector4(0.34, 0.87, 0.6, 1.0)
-			}
-		},
+	shaderTest = {
+		uniforms: { 
+	        tExplosion: {
+	            type: "t", 
+	            value: THREE.ImageUtils.loadTexture( 'images/explosion.png' )
+	        },
+	        time: { // float initialized to 0
+	            type: "f", 
+	            value: 0.0 
+	        }
+	    },
 		vertexShader: document.getElementById("vs").textContent,
 		fragmentShader: document.getElementById("fs").textContent
 	}
@@ -52,7 +57,7 @@ function init(){
 	controls.minDistance = 200;
 	controls.maxDistance = 500;
 
-	scene.add( new THREE.AmbientLight( 0x222222 ) );
+	// scene.add( new THREE.AmbientLight( 0x666666 ) );
 // Lights
 	var light = new THREE.PointLight( 0xffffff );
 	light.position.copy( camera.position );
@@ -64,7 +69,7 @@ function init(){
 	// numVertex = coreBallShape.vertices;
 	coreBallMaterial = new THREE.MeshBasicMaterial({color: 0x928852, wireframe: true})
 	coreBallShader = new THREE.ShaderMaterial(shaderTest);
-	coreBall = new THREE.Mesh(coreBallShape, coreBallMaterial);
+	coreBall = new THREE.Mesh(coreBallShape, coreBallShader);
 	scene.add(coreBall);
 }
 
@@ -72,8 +77,10 @@ function render(){
 	// coreBall.rotation.x += 0.005;
 	// coreBall.rotation.y += 0.005;
 	// if( dancer.isPlaying() ) console.log(dancer.getSpectrum()[10]);
-	updateAudioData();
+	// updateAudioData();
+	
 	requestAnimationFrame( render );
+	updateShader();
 	controls.update();
 	stats.update();
 	renderer.render( scene, camera );
@@ -95,9 +102,12 @@ function updateAudioData(){
 			// ballVertices[i].multiply(new THREE.Vector3(input, input, input));
 		}
 	}
-	coreBallShape.verticesNeedUpdate = true;
+	// coreBallShape.verticesNeedUpdate = true;
 }
 
+function updateShader() {
+	shaderTest.uniforms[ 'time' ].value = .00025 * ( Date.now() - start );
+}
 // For debug
 document.addEventListener('click', testClick, false);
 function testClick() {
