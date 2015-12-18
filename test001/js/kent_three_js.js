@@ -1,5 +1,5 @@
 var camer, scene, renderer, controls;
-var stats;
+var stats, textureLoader;
 var coreBall, coreBallShape, coreBallMaterial, refBall, shaderTest;
 var start = Date.now();
 init();
@@ -26,11 +26,12 @@ function init(){
 	renderer.domElement.id = "canvas";
 	document.body.appendChild( renderer.domElement );
 // Shaders
+	textureLoader = new THREE.TextureLoader();
 	shaderTest = {
 		uniforms: { 
 	        tExplosion: {
 	            type: "t", 
-	            value: THREE.ImageUtils.loadTexture( 'images/explosion.png' )
+	            value: textureLoader.load( 'images/explosion.png' )
 	        },
 	        time: { // float initialized to 0
 	            type: "f", 
@@ -64,7 +65,7 @@ function init(){
 	scene.add( light );
 
 // create the core ball here
-	coreBallShape = new THREE.IcosahedronGeometry(100, 2);
+	coreBallShape = new THREE.IcosahedronGeometry(100, 3);
 	refBall = coreBallShape.clone();
 	// numVertex = coreBallShape.vertices;
 	coreBallMaterial = new THREE.MeshBasicMaterial({color: 0x928852, wireframe: true})

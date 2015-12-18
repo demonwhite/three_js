@@ -14,6 +14,10 @@ http://joshondesign.com/p/books/canvasdeepdive/chapter12.html
 -
 Vertex displacement with a noise function using GLSL and three.js
 https://www.clicktorelease.com/blog/vertex-displacement-noise-3d-webgl-glsl-three-js
+-
+Instructables Universe in Three.js by pseaton
+http://www.instructables.com/id/Instructables-Universe-in-Threejs/
+-
 
 ---------------------------------------------------------------------------------------------------------------------
 *GIT*
@@ -35,4 +39,17 @@ https://github.com/jeromeetienne/webaudiox
 -
 SoundManager 2
 http://www.schillmania.com/projects/soundmanager2/
+-
+
+---------------------------------------------------------------------------------------------------------------------
+*Resources*
+-
+Experimenting with Three.js shaders and the ShaderMaterial
+http://blog.2pha.com/experimenting-threejs-shaders-and-shadermaterial
+-
+NPR Sketch Shader
+https://www.clicktorelease.com/code/npr-shading/
+-
+Steven Wittens
+https://acko.net/blog/mathbox2-pt2/
 -
