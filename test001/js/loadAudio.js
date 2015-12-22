@@ -1,6 +1,6 @@
 (function () {
 
-	var AUDIO_FILE = 'sounds/baby',
+	var AUDIO_FILE = 'sounds/day',
 		dancer, kick;
 
 	// Dancer.js 

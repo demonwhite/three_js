@@ -1,6 +1,7 @@
 var camer, scene, renderer, controls;
 var stats, textureLoader;
 var coreBall, coreBallShape, coreBallMaterial, refBall, shaderTest;
+var uniforms, attributes, spike, noise;
 var start = Date.now();
 init();
 render();
@@ -25,22 +26,7 @@ function init(){
 	renderer.setSize( window.innerWidth, window.innerHeight );
 	renderer.domElement.id = "canvas";
 	document.body.appendChild( renderer.domElement );
-// Shaders
-	textureLoader = new THREE.TextureLoader();
-	shaderTest = {
-		uniforms: { 
-	        tExplosion: {
-	            type: "t", 
-	            value: textureLoader.load( 'images/explosion.png' )
-	        },
-	        time: { // float initialized to 0
-	            type: "f", 
-	            value: 0.0 
-	        }
-	    },
-		vertexShader: document.getElementById("vs").textContent,
-		fragmentShader: document.getElementById("fs").textContent
-	}
+
 // Stats (Framerate)
 	stats = new Stats();
 	stats.domElement.style.position = 'absolute';
@@ -65,12 +51,60 @@ function init(){
 	scene.add( light );
 
 // create the core ball here
-	coreBallShape = new THREE.IcosahedronGeometry(100, 3);
-	refBall = coreBallShape.clone();
+	coreBallShape = new THREE.IcosahedronGeometry(100, 1);
+	console.log(coreBallShape);
 	// numVertex = coreBallShape.vertices;
 	coreBallMaterial = new THREE.MeshBasicMaterial({color: 0x928852, wireframe: true})
+	
+
+// Shaders
+	textureLoader = new THREE.TextureLoader();
+	uniforms = {
+		tExplosion: {
+            type: "t", 
+            value: textureLoader.load( 'images/explosion.png' )
+        },
+        time: { // float initialized to 0
+            type: "f", 
+            value: 0.0 
+        },
+        spike: {
+        	type: "f",
+        	value: 0.0
+        }
+	};
+	attributes = {
+		spike: {
+			type: 'f', // a float
+		 	value: [] // an empty array
+		}
+	};
+	shaderTest = {
+		uniforms: uniforms,
+		// attributes: attributes,
+		vertexShader: document.getElementById("vs").textContent,
+		fragmentShader: document.getElementById("fs").textContent,
+		wireframe: true
+	};	
+
+// buffer geometry
+	refBall = new THREE.BufferGeometry();
+	refBall.fromGeometry(coreBallShape);
+	spike = new Float32Array( refBall.attributes.position.count );
+	noise = new Float32Array( refBall.attributes.position.count );
+
+	// console.log(verts.count + " / " + verts.length);
+	for (var i = 0; i < spike.length; i++) {
+	  noise[ i ] = Math.random() * 5;
+	}
+	refBall.addAttribute('spike', new THREE.BufferAttribute(spike, 1));
+
+	console.log(refBall);
+
+// Mesh
 	coreBallShader = new THREE.ShaderMaterial(shaderTest);
-	coreBall = new THREE.Mesh(coreBallShape, coreBallShader);
+	coreBall = new THREE.Mesh(refBall, coreBallShader);
+
 	scene.add(coreBall);
 }
 
@@ -85,13 +119,12 @@ function render(){
 	controls.update();
 	stats.update();
 	renderer.render( scene, camera );
-	
 }
 
 function updateAudioData(){
 	// Grabbing the FFT array from dancer fo parsing/analysing, pull reference from my OF project
 	var fftList = dancer.getSpectrum();
-
+	console.log(fftList.length);
 	var ballVertices = coreBallShape.vertices,
 		numBallVertices = ballVertices.length,
 		refVertices = refBall.vertices;
@@ -107,10 +140,27 @@ function updateAudioData(){
 }
 
 function updateShader() {
+	var time = Date.now() * 0.01;
+
+	for ( var i = 0; i < spike.length; i ++ ) {
+
+		spike[ i ] = Math.sin( 0.1 * i + time );
+
+		noise[ i ] += 0.5 * ( 0.5 - Math.random() );
+		noise[ i ] = THREE.Math.clamp( noise[ i ], -5, 5 );
+
+		spike[ i ] += noise[ i ];
+
+	}
+
+	coreBall.geometry.attributes.spike.needsUpdate = true;
+
 	shaderTest.uniforms[ 'time' ].value = .00025 * ( Date.now() - start );
 }
 // For debug
 document.addEventListener('click', testClick, false);
 function testClick() {
-	console.log('get some info!!');
+	console.log('Here is the FFT');
+	var fftList = dancer.getSpectrum();
+	console.log(fftList.length);
 }
