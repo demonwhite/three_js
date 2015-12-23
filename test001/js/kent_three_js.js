@@ -1,6 +1,7 @@
 var camer, scene, renderer, controls;
 var stats, textureLoader;
 var coreBall, coreBallShape, coreBallMaterial, refBall, shaderTest;
+var particle, particles_geo, particles_radius = 100;
 var uniforms, attributes, spike, noise;
 var start = Date.now();
 init();
@@ -88,24 +89,80 @@ function init(){
 	};	
 
 // buffer geometry
-	refBall = new THREE.BufferGeometry();
-	refBall.fromGeometry(coreBallShape);
-	spike = new Float32Array( refBall.attributes.position.count );
-	noise = new Float32Array( refBall.attributes.position.count );
+	// refBall = new THREE.BufferGeometry();
+	// refBall.fromGeometry(coreBallShape);
+	// spike = new Float32Array( refBall.attributes.position.count );
+	// noise = new Float32Array( refBall.attributes.position.count );
 
-	// console.log(verts.count + " / " + verts.length);
-	for (var i = 0; i < spike.length; i++) {
-	  noise[ i ] = Math.random() * 5;
-	}
-	refBall.addAttribute('spike', new THREE.BufferAttribute(spike, 1));
+	// // console.log(verts.count + " / " + verts.length);
+	// for (var i = 0; i < spike.length; i++) {
+	//   noise[ i ] = Math.random() * 5;
+	// }
+	// refBall.addAttribute('spike', new THREE.BufferAttribute(spike, 1));
 
-	console.log(refBall);
+	// console.log(refBall);
 
 // Mesh
-	coreBallShader = new THREE.ShaderMaterial(shaderTest);
-	coreBall = new THREE.Mesh(refBall, coreBallShader);
+	// coreBallShader = new THREE.ShaderMaterial(shaderTest);
+	// coreBall = new THREE.Mesh(refBall, coreBallShader);
 
-	scene.add(coreBall);
+	// scene.add(coreBall);
+
+// Buffer Particles
+	// particles
+	var num_particle = 200;
+	var PI2 = Math.PI * 2;
+	particles_geo = new THREE.BufferGeometry();
+	var positions = new Float32Array( num_particle * 3 );
+	var colors = new Float32Array( num_particle * 3 );
+	var sizes = new Float32Array( num_particle );
+
+	for ( var i = 0; i < num_particle; i ++ ) {
+		// position
+		var x, y, z;
+		x = Math.random() * 2 - 1;
+		y = Math.random() * 2 - 1;
+		z = Math.random() * 2 - 1;
+		var p = new THREE.Vector3(x, y, z);
+		p.normalize();
+		p.multiplyScalar( Math.random() * 1.2 + particles_radius );
+			// particle.scale.multiplyScalar( 2 );
+		p.toArray(positions, i*3);
+
+		// color
+		var c = new THREE.Vector3(0.6, 1.0, 1.0);
+		c.toArray(colors, i*3);
+		// size
+		sizes[i] = 10.0;
+	}
+
+	particles_geo.addAttribute('position', new THREE.BufferAttribute(positions, 3) );
+	particles_geo.addAttribute('color', new THREE.BufferAttribute(colors, 3) );
+	particles_geo.addAttribute('size', new THREE.BufferAttribute(sizes, 1) );
+
+	var pointMaterial = new THREE.PointsMaterial(0xffffff);
+	particle = new THREE.Points(particles_geo, pointMaterial);
+	scene.add(particle);
+	// lines
+
+	for (var i = 0; i < 300; i++) {
+
+		var geometry = new THREE.Geometry();
+
+		var vertex = new THREE.Vector3( Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1 );
+		vertex.normalize();
+		vertex.multiplyScalar( particles_radius );
+
+		geometry.vertices.push( vertex );
+
+		var vertex2 = vertex.clone();
+		vertex2.multiplyScalar( Math.random() * 0.3 + 1 );
+
+		geometry.vertices.push( vertex2 );
+
+		var line = new THREE.Line( geometry, new THREE.LineBasicMaterial( { color: 0xffffff, opacity: Math.random() } ) );
+		// scene.add( line );
+	}
 }
 
 function render(){
@@ -142,20 +199,20 @@ function updateAudioData(){
 function updateShader() {
 	var time = Date.now() * 0.01;
 
-	for ( var i = 0; i < spike.length; i ++ ) {
+	// for ( var i = 0; i < spike.length; i ++ ) {
 
-		spike[ i ] = Math.sin( 0.1 * i + time );
+	// 	spike[ i ] = Math.sin( 0.1 * i + time );
 
-		noise[ i ] += 0.5 * ( 0.5 - Math.random() );
-		noise[ i ] = THREE.Math.clamp( noise[ i ], -5, 5 );
+	// 	noise[ i ] += 0.5 * ( 0.5 - Math.random() );
+	// 	noise[ i ] = THREE.Math.clamp( noise[ i ], -5, 5 );
 
-		spike[ i ] += noise[ i ];
+	// 	spike[ i ] += noise[ i ];
 
-	}
+	// }
 
-	coreBall.geometry.attributes.spike.needsUpdate = true;
+	// particle.geometry.attributes.position.needsUpdate = true;
 
-	shaderTest.uniforms[ 'time' ].value = .00025 * ( Date.now() - start );
+	// shaderTest.uniforms[ 'time' ].value = .00025 * ( Date.now() - start );
 }
 // For debug
 document.addEventListener('click', testClick, false);
