@@ -1,8 +1,8 @@
-var camer, scene, renderer, controls;
-var stats, textureLoader;
-var coreBall, coreBallShape, coreBallMaterial, refBall, shaderTest;
-var particle, particles_geo, particles_radius = 100;
-var uniforms, attributes, spike, noise;
+var camer, scene, renderer, controls, stats;
+var coreBall;
+var particle, particles_geo, particle_met, pt_uniforms,
+	particles_radius = 150;
+var noise, fakeFFT;
 var start = Date.now();
 init();
 render();
@@ -10,6 +10,8 @@ render();
 
 
 function init(){
+	fakeFFT = new Array(512);
+	updateFFT();
 // basis info
 	var info = document.createElement( 'div' );
 	info.style.position = 'absolute';
@@ -50,67 +52,16 @@ function init(){
 	var light = new THREE.PointLight( 0xffffff );
 	light.position.copy( camera.position );
 	scene.add( light );
-
-// create the core ball here
-	coreBallShape = new THREE.IcosahedronGeometry(100, 1);
-	console.log(coreBallShape);
-	// numVertex = coreBallShape.vertices;
-	coreBallMaterial = new THREE.MeshBasicMaterial({color: 0x928852, wireframe: true})
-	
-
-// Shaders
-	textureLoader = new THREE.TextureLoader();
-	uniforms = {
-		tExplosion: {
-            type: "t", 
-            value: textureLoader.load( 'images/explosion.png' )
-        },
-        time: { // float initialized to 0
-            type: "f", 
-            value: 0.0 
-        },
-        spike: {
-        	type: "f",
-        	value: 0.0
-        }
-	};
-	attributes = {
-		spike: {
-			type: 'f', // a float
-		 	value: [] // an empty array
-		}
-	};
-	shaderTest = {
-		uniforms: uniforms,
-		// attributes: attributes,
-		vertexShader: document.getElementById("vs").textContent,
-		fragmentShader: document.getElementById("fs").textContent,
-		wireframe: true
-	};	
-
-// buffer geometry
-	// refBall = new THREE.BufferGeometry();
-	// refBall.fromGeometry(coreBallShape);
-	// spike = new Float32Array( refBall.attributes.position.count );
-	// noise = new Float32Array( refBall.attributes.position.count );
-
-	// // console.log(verts.count + " / " + verts.length);
-	// for (var i = 0; i < spike.length; i++) {
-	//   noise[ i ] = Math.random() * 5;
-	// }
-	// refBall.addAttribute('spike', new THREE.BufferAttribute(spike, 1));
-
-	// console.log(refBall);
-
-// Mesh
-	// coreBallShader = new THREE.ShaderMaterial(shaderTest);
-	// coreBall = new THREE.Mesh(refBall, coreBallShader);
-
-	// scene.add(coreBall);
-
+// Core Mesh
+	var geo = new THREE.IcosahedronGeometry(50, 0);
+	var matt = new THREE.MeshLambertMaterial({
+		color: 0x556678,
+	})
+	coreBall = new THREE.Mesh(geo, matt);
+	scene.add(coreBall);
 // Buffer Particles
 	// particles
-	var num_particle = 200;
+	var num_particle = 512;
 	var PI2 = Math.PI * 2;
 	particles_geo = new THREE.BufferGeometry();
 	var positions = new Float32Array( num_particle * 3 );
@@ -130,22 +81,37 @@ function init(){
 		p.toArray(positions, i*3);
 
 		// color
-		var c = new THREE.Vector3(0.6, 1.0, 1.0);
+		var c = new THREE.Color();
+		c.setHSL( 0.01 + 0.1 * ( i / num_particle ), 1.0, 0.5 )
 		c.toArray(colors, i*3);
 		// size
-		sizes[i] = 10.0;
+		sizes[i] = 100.0;
 	}
 
 	particles_geo.addAttribute('position', new THREE.BufferAttribute(positions, 3) );
-	particles_geo.addAttribute('color', new THREE.BufferAttribute(colors, 3) );
+	particles_geo.addAttribute('aColor', new THREE.BufferAttribute(colors, 3) );
 	particles_geo.addAttribute('size', new THREE.BufferAttribute(sizes, 1) );
 
-	var pointMaterial = new THREE.PointsMaterial(0xffffff);
-	particle = new THREE.Points(particles_geo, pointMaterial);
+	//shaders
+	pt_uniforms = {
+		color:     { type: "c", value: new THREE.Color( 0xffffff ) },
+		texture:   { type: "t", value: new THREE.TextureLoader().load( "images/spark1.png" ) }
+	};
+	particle_met = new THREE.ShaderMaterial ({
+		uniforms: pt_uniforms,
+		vertexShader: document.getElementById( 'pv' ).textContent,
+		fragmentShader: document.getElementById( 'pf' ).textContent,
+
+		alphaTest: 0.9,
+	})
+
+
+	var pointMaterial = new THREE.PointsMaterial({color: 0xffffff, size: 3});
+	particle = new THREE.Points(particles_geo, particle_met);
 	scene.add(particle);
 	// lines
 
-	for (var i = 0; i < 300; i++) {
+	for (var i = 0; i < num_particle; i++) {
 
 		var geometry = new THREE.Geometry();
 
@@ -170,29 +136,44 @@ function render(){
 	// coreBall.rotation.y += 0.005;
 	// if( dancer.isPlaying() ) console.log(dancer.getSpectrum()[10]);
 	// updateAudioData();
-	
 	requestAnimationFrame( render );
+	updateFFT();
+	updatePosition();
 	updateShader();
 	controls.update();
 	stats.update();
 	renderer.render( scene, camera );
 }
 
+function updateFFT(){
+	for (var i = 0; i < fakeFFT.length; i++) {
+		var v =	( Math.random() * i ) / fakeFFT.length;
+		fakeFFT[i] = v;
+	}
+	fakeFFT.reverse();
+	// console.log("update fft: " + fakeFFT);
+}
+
+function updatePosition(){
+	var attr = particle.geometry.attributes;
+	// console.log(attr.position.count);
+	for (var i = 0; i < attr.position.count; i+=3) {
+		// var x = attr.position.array[i],
+		// 	y = attr.position.array[i+1],
+		// 	z = attr.position.array[i+2];
+		// var vex = new THREE.Vector3(x, y, z);
+
+	}
+	for (var i = 0; i < attr.size.count; i++) {
+		attr.size.array[i] = (fakeFFT[i] >= 0.3) ? fakeFFT[i]*500 : 100.0;
+	}
+	attr.size.needsUpdate = true;
+}
+
 function updateAudioData(){
 	// Grabbing the FFT array from dancer fo parsing/analysing, pull reference from my OF project
 	var fftList = dancer.getSpectrum();
 	console.log(fftList.length);
-	var ballVertices = coreBallShape.vertices,
-		numBallVertices = ballVertices.length,
-		refVertices = refBall.vertices;
-	for (var i = 0; i < numBallVertices; i++) {
-		var input = fftList[i]*100 || 0;
-		if (input <= 0.5) {
-			// console.log(input);
-		}else{
-			// ballVertices[i].multiply(new THREE.Vector3(input, input, input));
-		}
-	}
 	// coreBallShape.verticesNeedUpdate = true;
 }
 

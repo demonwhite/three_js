@@ -85,8 +85,47 @@
 	<script type="text/javascript" src="js/three.min.js"></script>
 	<script src="js/lib/TrackballControls.js"></script>
 	<script src="js/lib/stats.min.js"></script>
-	
 	<!-- Shaders -->
+	<!-- *PARTICLE SHADER* -->
+	<script type="x-shader/x-vertex" id="pv">
+
+		attribute float size;
+		attribute vec3 aColor;
+
+		varying vec3 vColor;
+
+		void main() {
+
+			vColor = aColor;
+
+			vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
+
+			gl_PointSize = size * ( 300.0 / length( mvPosition.xyz ) );
+
+			gl_Position = projectionMatrix * mvPosition;
+
+		}
+
+	</script>
+
+	<script type="x-shader/x-fragment" id="pf">
+
+		uniform vec3 color;
+		uniform sampler2D texture;
+
+		varying vec3 vColor;
+
+		void main() {
+
+			gl_FragColor = vec4( color * vColor, 1.0 );
+
+			gl_FragColor = gl_FragColor * texture2D( texture, gl_PointCoord );
+
+			if ( gl_FragColor.a < ALPHATEST ) discard;
+
+		}
+
+	</script>
 	<!-- * VERTEX SHADER * -->
 	<script type="x-shader/x-vertex" id="vs">
 	varying vec2 vUv;
