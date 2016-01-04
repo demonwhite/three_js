@@ -1,8 +1,8 @@
 var camer, scene, renderer, controls, stats;
 var coreBall;
 var particle, particles_geo, particle_met, pt_uniforms,
-	particles_radius = 150;
-var noise, fakeFFT;
+	particles_radius = 150, fftSizeTemp = 10;
+var particle_positions, fakeFFT;
 var start = Date.now();
 init();
 render();
@@ -10,7 +10,7 @@ render();
 
 
 function init(){
-	fakeFFT = new Array(512);
+	fakeFFT = new Array(fftSizeTemp);
 	updateFFT();
 // basis info
 	var info = document.createElement( 'div' );
@@ -61,13 +61,13 @@ function init(){
 	scene.add(coreBall);
 // Buffer Particles
 	// particles
-	var num_particle = 512;
+	var num_particle = fftSizeTemp;
 	var PI2 = Math.PI * 2;
 	particles_geo = new THREE.BufferGeometry();
 	var positions = new Float32Array( num_particle * 3 );
 	var colors = new Float32Array( num_particle * 3 );
 	var sizes = new Float32Array( num_particle );
-
+	particle_positions = [];
 	for ( var i = 0; i < num_particle; i ++ ) {
 		// position
 		var x, y, z;
@@ -79,7 +79,7 @@ function init(){
 		p.multiplyScalar( Math.random() * 1.2 + particles_radius );
 			// particle.scale.multiplyScalar( 2 );
 		p.toArray(positions, i*3);
-
+		particle_positions.push(p);
 		// color
 		var c = new THREE.Color();
 		c.setHSL( 0.01 + 0.1 * ( i / num_particle ), 1.0, 0.5 )
@@ -87,7 +87,7 @@ function init(){
 		// size
 		sizes[i] = 100.0;
 	}
-
+	console.log(particle_positions);
 	particles_geo.addAttribute('position', new THREE.BufferAttribute(positions, 3) );
 	particles_geo.addAttribute('aColor', new THREE.BufferAttribute(colors, 3) );
 	particles_geo.addAttribute('size', new THREE.BufferAttribute(sizes, 1) );
@@ -107,7 +107,7 @@ function init(){
 
 
 	var pointMaterial = new THREE.PointsMaterial({color: 0xffffff, size: 3});
-	particle = new THREE.Points(particles_geo, particle_met);
+	particle = new THREE.Points(particles_geo, pointMaterial);
 	scene.add(particle);
 	// lines
 
@@ -146,9 +146,10 @@ function render(){
 }
 
 function updateFFT(){
+	var t = Date.now();
 	for (var i = 0; i < fakeFFT.length; i++) {
-		var v =	( Math.random() * i ) / fakeFFT.length;
-		fakeFFT[i] = v;
+		var v =	noise.simplex2(i, t);
+		fakeFFT[i] = v/2;
 	}
 	fakeFFT.reverse();
 	// console.log("update fft: " + fakeFFT);
@@ -165,9 +166,14 @@ function updatePosition(){
 
 	}
 	for (var i = 0; i < attr.size.count; i++) {
-		attr.size.array[i] = (fakeFFT[i] >= 0.3) ? fakeFFT[i]*500 : 100.0;
+		// attr.size.array[i] = (fakeFFT[i] >= 0.3) ? fakeFFT[i]*500 : 100.0;
+		attr.size.array[i] = fakeFFT[i]*300;
 	}
 	attr.size.needsUpdate = true;
+
+	
+
+
 }
 
 function updateAudioData(){
@@ -201,4 +207,16 @@ function testClick() {
 	console.log('Here is the FFT');
 	var fftList = dancer.getSpectrum();
 	console.log(fftList.length);
+
+	debug();
+}
+
+function debug() {
+	var attr = particle.geometry.attributes;
+	var scalar = 1.1;
+	particle_positions[9].multiplyScalar(scalar);
+	attr.position.array[9*3] = particle_positions[9].x;
+	attr.position.array[9*3 +1] = particle_positions[9].y;
+	attr.position.array[9*3 +2] = particle_positions[9].z;
+	attr.position.needsUpdate = true;
 }
