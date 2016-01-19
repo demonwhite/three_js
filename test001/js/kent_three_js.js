@@ -1,8 +1,9 @@
 var camer, scene, renderer, controls, stats;
 var coreBall;
 var particle, particles_geo, particle_met, pt_uniforms,
-	particles_radius = 150, fftSizeTemp = 10;
+	particles_radius = 150, fftSizeTemp = 256;
 var particle_positions, fakeFFT;
+var line_geometry, line_material, line_mesh;
 var start = Date.now();
 init();
 render();
@@ -57,7 +58,8 @@ function init(){
 	var matt = new THREE.MeshLambertMaterial({
 		color: 0x556678,
 	})
-	coreBall = new THREE.Mesh(geo, matt);
+	var normalTexture = new THREE.MeshNormalMaterial({wireframe: true});
+	coreBall = new THREE.Mesh(geo, normalTexture);
 	scene.add(coreBall);
 // Buffer Particles
 	// particles
@@ -69,20 +71,18 @@ function init(){
 	var sizes = new Float32Array( num_particle );
 	particle_positions = [];
 	for ( var i = 0; i < num_particle; i ++ ) {
-		// position
-		var x, y, z;
-		x = Math.random() * 2 - 1;
-		y = Math.random() * 2 - 1;
-		z = Math.random() * 2 - 1;
-		var p = new THREE.Vector3(x, y, z);
-		p.normalize();
-		p.multiplyScalar( Math.random() * 1.2 + particles_radius );
-			// particle.scale.multiplyScalar( 2 );
-		p.toArray(positions, i*3);
-		particle_positions.push(p);
+
+		var o = new KVec3(particles_radius, i);
+		o.toArray(positions, i *3);
+		particle_positions.push(o);
+
 		// color
 		var c = new THREE.Color();
-		c.setHSL( 0.01 + 0.1 * ( i / num_particle ), 1.0, 0.5 )
+		if (i == 15) {
+			c.setHSL( 0.9, 0.1, 0.3);
+		}else{
+			c.setHSL( 0.01 + 0.1 * ( i / num_particle ), 1.0, 0.5 );
+		}
 		c.toArray(colors, i*3);
 		// size
 		sizes[i] = 100.0;
@@ -109,6 +109,20 @@ function init(){
 	var pointMaterial = new THREE.PointsMaterial({color: 0xffffff, size: 3});
 	particle = new THREE.Points(particles_geo, pointMaterial);
 	scene.add(particle);
+
+	// line geometry
+	line_geometry = new THREE.BufferGeometry();
+	// line_geometry.attributes = particles_geo.attributes;
+	line_geometry.copy(particles_geo);
+	line_material = new THREE.LineBasicMaterial( {
+						vertexColors: THREE.VertexColors,
+						blending: THREE.AdditiveBlending,
+						// transparent: true
+					} );
+	line_mesh = new THREE.LineSegments(line_geometry, line_material);
+	line_mesh.geometry.setDrawRange(0, 4);
+	scene.add(line_mesh);
+
 	// lines
 
 	for (var i = 0; i < num_particle; i++) {
@@ -130,20 +144,25 @@ function init(){
 		// scene.add( line );
 	}
 }
-
+// ***************************************
+// *************** RENDER ****************
 function render(){
 	// coreBall.rotation.x += 0.005;
 	// coreBall.rotation.y += 0.005;
 	// if( dancer.isPlaying() ) console.log(dancer.getSpectrum()[10]);
 	// updateAudioData();
-	requestAnimationFrame( render );
+	
 	updateFFT();
 	updatePosition();
-	updateShader();
+	// updateShader();
+	checkDistance();
+	requestAnimationFrame( render );
 	controls.update();
 	stats.update();
 	renderer.render( scene, camera );
 }
+// ************ END RENDER ***************
+// ***************************************
 
 function updateFFT(){
 	var t = Date.now();
@@ -155,24 +174,67 @@ function updateFFT(){
 	// console.log("update fft: " + fakeFFT);
 }
 
+function checkDistance() {
+	var target, search;
+	var max_dist = 30.0;
+	var vertexpos = 0;
+	var colorpos = 0;
+	var numConnected = 0;
+	for (var p = 0; p < fftSizeTemp; p++) particle_positions[p].numConnected = 0;
+
+	for ( var i = 0; i < fftSizeTemp; i++ ) {
+		target = particle_positions[i];
+		if ( target.numConnected >= 2) continue;
+
+		for ( var j = i; j < fftSizeTemp; j++ ){
+			search = particle_positions[j];
+			var dx = target.x - search.x;
+			var dy = target.y - search.y;
+			var dz = target.z - search.z;
+			var dist = Math.sqrt( dx * dx + dy * dy + dz * dz );	
+			if (search.numConnected >= 2) continue;
+			if ( dist < max_dist ){
+				target.numConnected ++;
+				search.numConnected ++;
+				// ADD IT TO THE LINE BUFFER
+				line_mesh.geometry.attributes.position.array[ vertexpos++ ] = target.x;
+				line_mesh.geometry.attributes.position.array[ vertexpos++ ] = target.y;
+				line_mesh.geometry.attributes.position.array[ vertexpos++ ] = target.z;
+
+				line_mesh.geometry.attributes.position.array[ vertexpos++ ] = search.x;
+				line_mesh.geometry.attributes.position.array[ vertexpos++ ] = search.y;
+				line_mesh.geometry.attributes.position.array[ vertexpos++ ] = search.z;
+
+				var alpha = 1.0 - dist / max_dist;
+
+				line_mesh.geometry.attributes.aColor.array[ colorpos++ ] = alpha;
+				line_mesh.geometry.attributes.aColor.array[ colorpos++ ] = alpha;
+				line_mesh.geometry.attributes.aColor.array[ colorpos++ ] = alpha;
+
+				line_mesh.geometry.attributes.aColor.array[ colorpos++ ] = alpha;
+				line_mesh.geometry.attributes.aColor.array[ colorpos++ ] = alpha;
+				line_mesh.geometry.attributes.aColor.array[ colorpos++ ] = alpha;
+				numConnected ++;
+			}
+		}
+	}
+	line_mesh.geometry.setDrawRange(0, numConnected *2);
+	line_mesh.geometry.attributes.position.needsUpdate = true;
+	line_mesh.geometry.attributes.aColor.needsUpdate = true;
+
+}
+
 function updatePosition(){
 	var attr = particle.geometry.attributes;
-	// console.log(attr.position.count);
-	for (var i = 0; i < attr.position.count; i+=3) {
-		// var x = attr.position.array[i],
-		// 	y = attr.position.array[i+1],
-		// 	z = attr.position.array[i+2];
-		// var vex = new THREE.Vector3(x, y, z);
-
+	for (p in particle_positions) {
+		// particle_positions[p].randomUpdate();
+		particle_positions[p].movePos();
+		attr.position.array[p*3] = particle_positions[p].x;
+		attr.position.array[p*3 +1] = particle_positions[p].y;
+		attr.position.array[p*3 +2] = particle_positions[p].z;
 	}
-	for (var i = 0; i < attr.size.count; i++) {
-		// attr.size.array[i] = (fakeFFT[i] >= 0.3) ? fakeFFT[i]*500 : 100.0;
-		attr.size.array[i] = fakeFFT[i]*300;
-	}
-	attr.size.needsUpdate = true;
 
-	
-
+	attr.position.needsUpdate = true;
 
 }
 
@@ -182,6 +244,30 @@ function updateAudioData(){
 	console.log(fftList.length);
 	// coreBallShape.verticesNeedUpdate = true;
 }
+
+// *********** For debug ***********
+document.addEventListener('click', testClick, false);
+function testClick() {
+	console.log('Here is the FFT');
+	var fftList = dancer.getSpectrum();
+	console.log(fftList.length);
+
+	debug();
+}
+
+function debug() {
+	var attr = particle.geometry.attributes;
+	for (p in particle_positions) {
+		particle_positions[p].randomUpdate();
+		particle_positions[p].movePos();
+		attr.position.array[p*3] = particle_positions[p].x;
+		attr.position.array[p*3 +1] = particle_positions[p].y;
+		attr.position.array[p*3 +2] = particle_positions[p].z;
+	}
+
+	attr.position.needsUpdate = true;
+}
+// ********** temparary trash area ***********
 
 function updateShader() {
 	var time = Date.now() * 0.01;
@@ -201,22 +287,16 @@ function updateShader() {
 
 	// shaderTest.uniforms[ 'time' ].value = .00025 * ( Date.now() - start );
 }
-// For debug
-document.addEventListener('click', testClick, false);
-function testClick() {
-	console.log('Here is the FFT');
-	var fftList = dancer.getSpectrum();
-	console.log(fftList.length);
 
-	debug();
-}
 
-function debug() {
-	var attr = particle.geometry.attributes;
-	var scalar = 1.1;
-	particle_positions[9].multiplyScalar(scalar);
-	attr.position.array[9*3] = particle_positions[9].x;
-	attr.position.array[9*3 +1] = particle_positions[9].y;
-	attr.position.array[9*3 +2] = particle_positions[9].z;
-	attr.position.needsUpdate = true;
-}
+		// position
+		// var x, y, z;
+		// x = Math.random() * 2 - 1;
+		// y = Math.random() * 2 - 1;
+		// z = Math.random() * 2 - 1;
+		// var p = new KVec3(x, y, z);
+		// p.normalize();
+		// p.multiplyScalar( Math.random() * 1.2 + particles_radius );
+		// 	// particle.scale.multiplyScalar( 2 );
+		// p.toArray(positions, i*3);
+		// particle_positions.push(p);
