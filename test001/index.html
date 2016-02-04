@@ -35,13 +35,13 @@
 			}
 
 			#loading {
-			    font-size: 20px;
+			    font-size: 10px;
 			    color: #fff;
-			    width: 100px;
+			    /*width: 100px;*/
 			    margin-top: 100px;
 			    position: absolute;
 			    background-color: #111;
-			    padding: 10px;
+			    padding: 5px;
 			    -webkit-border-radius: 10px;
 			    -moz-border-radius: 10px;
 			    border-radius: 10px;
@@ -74,6 +74,12 @@
 			}
 
 		</style>
+
+	<script type="text/javascript" src="js/lib/perlin.js"></script>
+	<script type="text/javascript" src="js/three.min.js"></script>
+
+	<script src="js/lib/TrackballControls.js"></script>
+	<script src="js/lib/stats.min.js"></script>
 </head>
 <body>
 	
@@ -81,10 +87,7 @@
 	<a id="togglefft" href="#">toggle FFT spectrum</a>
 	<canvas id="fft" height="50" width="256"></canvas>
 	<div id="loading">Loading . . .</div>
-	<script type="text/javascript" src="js/lib/perlin.js"></script>
-	<script type="text/javascript" src="js/three.min.js"></script>
-	<script src="js/lib/TrackballControls.js"></script>
-	<script src="js/lib/stats.min.js"></script>
+	
 	<!-- Shaders -->
 	<!-- *PARTICLE SHADER* -->
 	<script type="x-shader/x-vertex" id="pv">
