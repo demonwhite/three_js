@@ -21,7 +21,7 @@ window.addEventListener('load',soundInit,false);
 //load the mp3 file 
 function loadFile() { 
     var req = new XMLHttpRequest(); 
-    req.open("GET","sounds/changes.mp3",true); 
+    req.open("GET","sounds/baby.mp3",true); 
     //we can't use jquery because we need the arraybuffer type 
     req.responseType = "arraybuffer"; 
     req.onload = function() { 

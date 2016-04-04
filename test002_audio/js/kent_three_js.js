@@ -5,10 +5,12 @@
 var camer, scene, renderer, controls, stats, fftList;
 var coreBall;
 var particle, particles_geo, particle_met, pt_uniforms,
-	particles_radius = 150, fftSizeTemp = 256;
+	particles_radius = 150, fftSizeTemp = 512, fftBands = [], nFFTBands = 30;
 var particle_positions, fakeFFT;
 var line_position, line_color,line_geometry, line_material, line_mesh;
 var start = Date.now();
+
+var sound_group;
 // initGUI();
 init();
 render();
@@ -35,7 +37,7 @@ function init(){
 	var matt = new THREE.MeshLambertMaterial({
 		color: 0x556678,
 	})
-	var normalTexture = new THREE.MeshNormalMaterial({wireframe: false});
+	var normalTexture = new THREE.MeshNormalMaterial({wireframe: true});
 	coreBall = new THREE.Mesh(geo, normalTexture);
 	scene.add(coreBall);
 // Buffer Particles
@@ -141,6 +143,20 @@ function init(){
 	controls.minDistance = 200;
 	controls.maxDistance = 500;
 
+// Sound visual test objects
+	var nSoundObj = nFFTBands;
+	sound_group = new THREE.Object3D();
+	
+	for (var i=0; i < nSoundObj; i++){
+		var sound_geo = new THREE.BoxGeometry(5, 5, 5);
+		var color = new THREE.Color( 0, i, 0);
+		var sound_mat = new THREE.MeshBasicMaterial( color );
+		var sound_mesh = new THREE.Mesh(sound_geo, sound_mat);
+		sound_mesh.position.x = 20 * i;
+		sound_group.add(sound_mesh);
+	}
+	scene.add(sound_group);
+
 }
 // ***************************************
 // *************** RENDER ****************
@@ -154,6 +170,7 @@ function render(){
 	if (fft) {
 
 		updateFFT();
+		parseFFT();
 		updatePosition();
 
 	}
@@ -170,12 +187,25 @@ function updateFFT(){
 	    var array =  new Uint8Array(fft.frequencyBinCount);
 	    fft.getByteFrequencyData(array);
 	    fftList = array;
+	    var nFFT = Math.floor(fftList.length / nFFTBands);
+		console.log(nFFT);
+		var threshold = 400;
+		for (var i = 0; i < nFFTBands; i++) {
+			var total = 0;
+			for (var t = i; t < i*nFFT; t++) {
+				total += fftList[t];
+			}
+			total = total / nFFT;
+			(total >= threshold) ? fftBands[i] = total : fftBands[i] = threshold;
+		}	
     // console.log(fftList);
 	}else{
 		for (i in fftList) {
 			fftList[i] = 0;
 		}
 	}
+
+
 }
 
 function updateFakeFFT(){
@@ -186,6 +216,17 @@ function updateFakeFFT(){
 	}
 	fakeFFT.reverse();
 	// console.log("update fft: " + fakeFFT);
+}
+
+function parseFFT(){
+
+	for (i in sound_group.children) {
+		var value = fftList[i*5]/100 ;
+		var obj = sound_group.children[i];
+		// console.log(value);
+		obj.geometry.scale(1, 1, 1);
+		obj.verticesNeedUpdate = true;
+	}
 }
 
 function checkDistance() {
@@ -261,6 +302,12 @@ function updatePosition(){
 	// 	camera.updateProjectionMatrix();
 
 	// }
+
+	for (var i = 0; i < nFFTBands; i++) {
+		// console.log(sound_group);
+		sound_group.children[i].scale.y = fftBands[i]/100;
+	}
+
 
 }
 
