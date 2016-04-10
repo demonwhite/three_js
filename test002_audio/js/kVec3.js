@@ -3,7 +3,7 @@ function KVec3(_r, _id){
 	// this.SEED = Math.random() * 5;
 	this.rangeMax = Math.PI/2 * Math.random() + Math.PI/2;
 	this.rangeMin = Math.PI/2 * Math.random();
-	this.velocity = .005 * ((Math.random()-0.5)*2);
+	this.velocity = .01 * ((Math.random()-0.5)*2);
 	this.numConnected = 0;
 	this.radius = this.originalRadius = _r; //distance to the center (0,0)
 	this.theta = Math.random() * (this.rangeMax - this.rangeMin) + this.rangeMin;

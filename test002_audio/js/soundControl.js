@@ -9,7 +9,7 @@ var setup = false; //indicate if audio is set up yet
 function soundInit() { 
     console.log("in init"); 
     try { 
-        ctx = new AudioContext(); //is there a better API for this? 
+        ctx = new (window.AudioContext || window.webkitAudioContext); //is there a better API for this? 
         // setupCanvas(); 
         loadFile(); 
     } catch(e) { 
@@ -21,14 +21,14 @@ window.addEventListener('load',soundInit,false);
 //load the mp3 file 
 function loadFile() { 
     var req = new XMLHttpRequest(); 
-    req.open("GET","sounds/baby.mp3",true); 
+    req.open("GET","sounds/day.mp3",true); 
     //we can't use jquery because we need the arraybuffer type 
     req.responseType = "arraybuffer"; 
     req.onload = function() { 
         //decode the loaded data 
         ctx.decodeAudioData(req.response, function(buffer) { 
             buf = buffer; 
-            play(); 
+            // play(); 
         }); 
     }; 
     req.send(); 

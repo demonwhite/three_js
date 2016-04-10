@@ -2,13 +2,14 @@
 
 // Web Audio end
 
-var camer, scene, renderer, controls, stats, fftList;
+var camera, scene, renderer, controls, stats, fftList;
 var coreBall;
 var particle, particles_geo, particle_met, pt_uniforms,
-	particles_radius = 150, fftSizeTemp = 512, fftBands = [], nFFTBands = 30;
+particles_radius = 150, fftSizeTemp = 256, fftBands = [], nFFTBands = 5;
 var particle_positions, fakeFFT;
 var line_position, line_color,line_geometry, line_material, line_mesh;
-var start = Date.now();
+var isPlaying = false, initSound = false;
+// var start = Date.now();
 
 var sound_group;
 // initGUI();
@@ -18,28 +19,28 @@ render();
 
 
 function init(){
-	fakeFFT = new Array(fftSizeTemp);
+	// fakeFFT = new Array(fftSizeTemp);
 
 
 
 
 // Scene
-	scene = new THREE.Scene();
+scene = new THREE.Scene();
 // Camera
-	camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 10000 );
-	camera.position.set( 0, 0, 500 );
+camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 10000 );
+camera.position.set( 0, 0, 500 );
 // Lights
 	// var light = new THREE.PointLight( 0xffffff );
 	// light.position.copy( camera.position );
 	// scene.add( light );
 // Core Mesh
-	var geo = new THREE.IcosahedronGeometry(50, 1);
-	var matt = new THREE.MeshLambertMaterial({
-		color: 0x556678,
-	})
-	var normalTexture = new THREE.MeshNormalMaterial({wireframe: true});
-	coreBall = new THREE.Mesh(geo, normalTexture);
-	scene.add(coreBall);
+var geo = new THREE.IcosahedronGeometry(50, 1);
+var matt = new THREE.MeshLambertMaterial({
+	color: 0x556678,
+})
+var normalTexture = new THREE.MeshNormalMaterial({wireframe: true});
+coreBall = new THREE.Mesh(geo, normalTexture);
+scene.add(coreBall);
 // Buffer Particles
 	// particles buffer
 	var num_particle = fftSizeTemp;
@@ -110,52 +111,53 @@ function init(){
 	scene.add(line_mesh);
 
 // basis info
-	var info = document.createElement( 'div' );
-	info.style.position = 'absolute';
-	info.style.top = '10px';
-	info.style.width = '100%';
-	info.style.textAlign = 'center';
-	info.style.color = '#fff';
-	info.style.link = '#f80';
-	info.innerHTML = '<a href="http://threejs.org" target="_blank">three.js</a> kent&rsquo;s test';
-	document.body.appendChild( info );
+var info = document.createElement( 'div' );
+info.style.position = 'absolute';
+info.style.top = '10px';
+info.style.width = '100%';
+info.style.textAlign = 'center';
+info.style.color = '#fff';
+info.style.link = '#f80';
+info.innerHTML = '<a href="http://threejs.org" target="_blank">three.js</a> kent&rsquo;s test';
+document.body.appendChild( info );
 // Renderer
-	renderer = new THREE.WebGLRenderer( { antialias: true } );
-	renderer.setClearColor( 0x222222 );
-	renderer.setPixelRatio( window.devicePixelRatio );
-	renderer.setSize( window.innerWidth, window.innerHeight );
-	renderer.gammaInput = true;
-	renderer.gammaOutput = true;
+renderer = new THREE.WebGLRenderer( { antialias: true } );
+renderer.setClearColor( 0x222222 );
+renderer.setPixelRatio( window.devicePixelRatio );
+renderer.setSize( window.innerWidth, window.innerHeight );
+renderer.gammaInput = true;
+renderer.gammaOutput = true;
 
-	renderer.domElement.id = "canvas";
-	document.body.appendChild( renderer.domElement );
+renderer.domElement.id = "canvas";
+document.body.appendChild( renderer.domElement );
 
 
 // Stats (Framerate)
-	stats = new Stats();
-	stats.domElement.style.position = 'absolute';
-	stats.domElement.style.top = '0px';
-	stats.domElement.style.right = '0px';
-	info.appendChild( stats.domElement );
+stats = new Stats();
+stats.domElement.style.position = 'absolute';
+stats.domElement.style.top = '0px';
+stats.domElement.style.right = '0px';
+info.appendChild( stats.domElement );
 
 // View Controller
-	controls = new THREE.TrackballControls( camera, renderer.domElement );
-	controls.minDistance = 200;
-	controls.maxDistance = 500;
+controls = new THREE.TrackballControls( camera, renderer.domElement );
+controls.minDistance = 200;
+controls.maxDistance = 500;
 
 // Sound visual test objects
-	var nSoundObj = nFFTBands;
-	sound_group = new THREE.Object3D();
-	
-	for (var i=0; i < nSoundObj; i++){
-		var sound_geo = new THREE.BoxGeometry(5, 5, 5);
-		var color = new THREE.Color( 0, i, 0);
-		var sound_mat = new THREE.MeshBasicMaterial( color );
-		var sound_mesh = new THREE.Mesh(sound_geo, sound_mat);
-		sound_mesh.position.x = 20 * i;
-		sound_group.add(sound_mesh);
-	}
-	scene.add(sound_group);
+var nSoundObj = nFFTBands;
+sound_group = new THREE.Object3D();
+
+for (var i=0; i < nSoundObj; i++){
+	var sound_geo = new THREE.BoxGeometry(5, 5, 5);
+	var color = new THREE.Color();
+	color.g = i;
+	var sound_mat = new THREE.MeshBasicMaterial( color.getHex() );
+	var sound_mesh = new THREE.Mesh(sound_geo, sound_mat);
+	sound_mesh.position.x = 20 * i;
+	sound_group.add(sound_mesh);
+}
+scene.add(sound_group);
 
 }
 // ***************************************
@@ -167,7 +169,7 @@ function render(){
 	scene.rotation.y += 0.003;
 	scene.rotation.x += 0.002;
 	// update position when fft is ready
-	if (fft) {
+	if (isPlaying) {
 
 		updateFFT();
 		parseFFT();
@@ -175,35 +177,38 @@ function render(){
 
 	}
 	checkDistance();
-	requestAnimationFrame( render );
 	controls.update();
 	stats.update();
 	renderer.render( scene, camera );
+	requestAnimationFrame( render );
+
 }
 // ************ END RENDER ***************
 // ***************************************
 function updateFFT(){
-	if (ctx.state === "running") {
-	    var array =  new Uint8Array(fft.frequencyBinCount);
-	    fft.getByteFrequencyData(array);
-	    fftList = array;
-	    var nFFT = Math.floor(fftList.length / nFFTBands);
-		console.log(nFFT);
-		var threshold = 400;
+	if (isPlaying) {
+		var array =  new Uint8Array(fft.frequencyBinCount);
+		fft.getByteFrequencyData(array);
+		fftList = array;
+		var nFFT = Math.floor(fftList.length / nFFTBands);
+		// console.log(nFFT);
+		var threshold = [50, 100, 150, 200, 250];
 		for (var i = 0; i < nFFTBands; i++) {
 			var total = 0;
 			for (var t = i; t < i*nFFT; t++) {
 				total += fftList[t];
+				
 			}
 			total = total / nFFT;
-			(total >= threshold) ? fftBands[i] = total : fftBands[i] = threshold;
+			(total >= threshold[i]) ? fftBands[i] = total : fftBands[i] = threshold[i];
+
 		}	
     // console.log(fftList);
-	}else{
-		for (i in fftList) {
-			fftList[i] = 0;
-		}
+}else{
+	for (i in fftList) {
+		fftList[i] = 0;
 	}
+}
 
 
 }
@@ -237,20 +242,20 @@ function checkDistance() {
 	var numConnected = 0;
 	for (var p = 0; p < fftSizeTemp; p++) particle_positions[p].numConnected = 0;
 
-	for ( var i = 0; i < fftSizeTemp; i++ ) {
-		target = particle_positions[i];
-		if ( target.numConnected >= max_connections) continue;
+		for ( var i = 0; i < fftSizeTemp; i++ ) {
+			target = particle_positions[i];
+			if ( target.numConnected >= max_connections) continue;
 
-		for ( var j = i+1; j < fftSizeTemp; j++ ){
-			search = particle_positions[j];
-			var dx = target.x - search.x;
-			var dy = target.y - search.y;
-			var dz = target.z - search.z;
-			var dist = Math.sqrt( dx * dx + dy * dy + dz * dz );	
-			if (search.numConnected >= max_connections) continue;
-			if ( dist < max_dist ){
-				target.numConnected ++;
-				search.numConnected ++;
+			for ( var j = i+1; j < fftSizeTemp; j++ ){
+				search = particle_positions[j];
+				var dx = target.x - search.x;
+				var dy = target.y - search.y;
+				var dz = target.z - search.z;
+				var dist = Math.sqrt( dx * dx + dy * dy + dz * dz );	
+				if (search.numConnected >= max_connections) continue;
+				if ( dist < max_dist ){
+					target.numConnected ++;
+					search.numConnected ++;
 				// ADD IT TO THE LINE BUFFER
 				line_position[ vertexpos++ ] = target.x;
 				line_position[ vertexpos++ ] = target.y;
@@ -290,7 +295,18 @@ function updatePosition(){
 		attr.position.array[p*3 +2] = particle_positions[p].z;
 	}
 
-	attr.position.needsUpdate = true;
+	// Move the camera in a circle with the pivot point in the centre of this circle...
+  // ...so that the pivot point, and focus of the camera is on the centre of our scene.
+
+  attr.position.needsUpdate = true;
+
+	// var timer = new Date().getTime() * 0.0005;
+  // camera.position.x = particle_positions[100].x;
+  // camera.position.y = particle_positions[100].y;
+  // camera.position.z = particle_positions[100].z;
+  // camera.lookAt(particle_positions[10]);
+  // camera.updateProjectionMatrix();
+
 
 	// var zoomMax = 1.3, zoom = 0.8;
 	// if (dancer.isKick == true) {
@@ -303,11 +319,15 @@ function updatePosition(){
 
 	// }
 
+	// scalling the bars
 	for (var i = 0; i < nFFTBands; i++) {
 		// console.log(sound_group);
 		sound_group.children[i].scale.y = fftBands[i]/100;
 	}
-
+	// testing camera zoom
+	// camera.zoom = fftBands[4]/255;
+	// console.log(fftBands[4]);
+	// camera.updateProjectionMatrix();
 
 }
 
@@ -318,14 +338,24 @@ function updateAudioData(){
 	// female voice: 2 ~ 12 khz
 }
 
-document.getElementById('audio-control').addEventListener('click', musicControl, false);
+// MUSIC CONTROL
 function musicControl() {
-	if (ctx.state === "running") {
+	if (isPlaying == true) {
 		ctx.suspend();
+		isPlaying = false;
 	}else{
-		ctx.resume();
+		if (!initSound) {
+			play();
+			initSound = true;
+		}else{
+			ctx.resume();
+		}
+
+		isPlaying = true;
 	}
 }
+document.getElementById('audio-control').addEventListener('click', musicControl, false);
+
 
 // *********** For debug ***********
 document.addEventListener('click', debug, false);
@@ -340,11 +370,11 @@ function testClick() {
 function debug() {
 	// console.log(audioFFT);
 
-    var array =  new Uint8Array(fft.frequencyBinCount);
-    fft.getByteFrequencyData(array);
+	var array =  new Uint8Array(fft.frequencyBinCount);
+	fft.getByteFrequencyData(array);
 
 
-    console.log(array);
+    // console.log(array);
 }
 // ********** temparary trash area ***********
 
@@ -367,15 +397,3 @@ function updateShader() {
 	// shaderTest.uniforms[ 'time' ].value = .00025 * ( Date.now() - start );
 }
 
-
-		// position
-		// var x, y, z;
-		// x = Math.random() * 2 - 1;
-		// y = Math.random() * 2 - 1;
-		// z = Math.random() * 2 - 1;
-		// var p = new KVec3(x, y, z);
-		// p.normalize();
-		// p.multiplyScalar( Math.random() * 1.2 + particles_radius );
-		// 	// particle.scale.multiplyScalar( 2 );
-		// p.toArray(positions, i*3);
-		// particle_positions.push(p);
