@@ -19,7 +19,7 @@ function KVec3(_r, _id){
 	// assigne the new x, y, z
 	THREE.Vector3.call(this, _x, _y, _z);
 	// console.log(this.ID + " velocity : " + this.velocity);
-}
+};
 // inherite THREE.js Vector3 prototype
 KVec3.prototype = THREE.Vector3.prototype;
 
@@ -34,7 +34,7 @@ KVec3.prototype.FFTin = function(_fftBin){
 		this.radius += (this.originalRadius - this.radius)/10;
 		this.onFFT = false;
 	}
-}
+};
 
 KVec3.prototype.movePos = function(){
 	var s = noise.simplex2(this.ID, Date.now()) * 5;
@@ -49,8 +49,8 @@ KVec3.prototype.movePos = function(){
 	this.x = this.radius * Math.sin(this.theta) * Math.cos(this.pi);
 	this.y = this.radius * Math.sin(this.theta) * Math.sin(this.pi);
 	this.z = this.radius * Math.cos(this.theta);
-}
+};
 //debug
 KVec3.prototype.randomUpdate = function() {
 	console.log('the theta is : ' + this.theta + "/ this x y z: " + this.x +"/" + this.y + "/" + this.z);
-}
+};

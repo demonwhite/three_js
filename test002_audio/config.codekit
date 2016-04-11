@@ -27,7 +27,7 @@
 	"\/index.html": {
 		"fileType": 8192,
 		"ignore": 0,
-		"ignoreWasSetByUser": 0,
+		"ignoreWasSetByUser": 1,
 		"inputAbbreviatedPath": "\/index.html",
 		"outputAbbreviatedPath": "No Output Path",
 		"outputPathIsOutsideProject": 0,
@@ -209,10 +209,21 @@
 		"outputStyle": 1,
 		"syntaxCheckerStyle": 1
 		},
-	"\/js\/lib\/dat.gui.min.js": {
+	"\/js\/lib\/dat-gui-min.js": {
 		"fileType": 64,
 		"ignore": 0,
 		"ignoreWasSetByUser": 0,
+		"inputAbbreviatedPath": "\/js\/lib\/dat-gui-min.js",
+		"outputAbbreviatedPath": "\/js\/lib\/min\/dat-gui-min-min.js",
+		"outputPathIsOutsideProject": 0,
+		"outputPathIsSetByUser": 0,
+		"outputStyle": 1,
+		"syntaxCheckerStyle": 1
+		},
+	"\/js\/lib\/dat.gui.min.js": {
+		"fileType": 64,
+		"ignore": 1,
+		"ignoreWasSetByUser": 1,
 		"inputAbbreviatedPath": "\/js\/lib\/dat.gui.min.js",
 		"outputAbbreviatedPath": "\/js\/lib\/min\/dat.gui.min-min.js",
 		"outputPathIsOutsideProject": 0,
@@ -222,8 +233,8 @@
 		},
 	"\/js\/lib\/perlin.js": {
 		"fileType": 64,
-		"ignore": 0,
-		"ignoreWasSetByUser": 0,
+		"ignore": 1,
+		"ignoreWasSetByUser": 1,
 		"inputAbbreviatedPath": "\/js\/lib\/perlin.js",
 		"outputAbbreviatedPath": "\/js\/lib\/min\/perlin-min.js",
 		"outputPathIsOutsideProject": 0,
@@ -233,8 +244,8 @@
 		},
 	"\/js\/lib\/stats.min.js": {
 		"fileType": 64,
-		"ignore": 0,
-		"ignoreWasSetByUser": 0,
+		"ignore": 1,
+		"ignoreWasSetByUser": 1,
 		"inputAbbreviatedPath": "\/js\/lib\/stats.min.js",
 		"outputAbbreviatedPath": "\/js\/lib\/min\/stats.min-min.js",
 		"outputPathIsOutsideProject": 0,
@@ -244,8 +255,8 @@
 		},
 	"\/js\/lib\/three.min.js": {
 		"fileType": 64,
-		"ignore": 0,
-		"ignoreWasSetByUser": 0,
+		"ignore": 1,
+		"ignoreWasSetByUser": 1,
 		"inputAbbreviatedPath": "\/js\/lib\/three.min.js",
 		"outputAbbreviatedPath": "\/js\/lib\/min\/three.min-min.js",
 		"outputPathIsOutsideProject": 0,
@@ -255,8 +266,8 @@
 		},
 	"\/js\/lib\/TrackballControls.js": {
 		"fileType": 64,
-		"ignore": 0,
-		"ignoreWasSetByUser": 0,
+		"ignore": 1,
+		"ignoreWasSetByUser": 1,
 		"inputAbbreviatedPath": "\/js\/lib\/TrackballControls.js",
 		"outputAbbreviatedPath": "\/js\/lib\/min\/TrackballControls-min.js",
 		"outputPathIsOutsideProject": 0,
@@ -336,17 +347,6 @@
 		"ignoreWasSetByUser": 1,
 		"inputAbbreviatedPath": "\/js\/soundControl.js",
 		"outputAbbreviatedPath": "\/js\/min\/soundControl-min.js",
-		"outputPathIsOutsideProject": 0,
-		"outputPathIsSetByUser": 0,
-		"outputStyle": 1,
-		"syntaxCheckerStyle": 1
-		},
-	"\/js\/three.js": {
-		"fileType": 64,
-		"ignore": 0,
-		"ignoreWasSetByUser": 0,
-		"inputAbbreviatedPath": "\/js\/three.js",
-		"outputAbbreviatedPath": "\/js\/min\/three-min.js",
 		"outputPathIsOutsideProject": 0,
 		"outputPathIsSetByUser": 0,
 		"outputStyle": 1,
