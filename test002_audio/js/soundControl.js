@@ -1,10 +1,10 @@
 var ctx; //audio context 
 var buf; //audio buffer 
 var fft; //fft audio node 
-var samples = 256; 
+var samples = 512; 
 var setup = false; //indicate if audio is set up yet 
- 
- 
+
+
 //init the sound system 
 function soundInit() { 
     console.log("in init"); 
@@ -17,7 +17,7 @@ function soundInit() {
     } 
 } 
 window.addEventListener('load',soundInit,false); 
- 
+
 //load the mp3 file 
 function loadFile() { 
     var req = new XMLHttpRequest(); 
@@ -38,16 +38,16 @@ function play() {
     //create a source node from the buffer 
     var src = ctx.createBufferSource();  
     src.buffer = buf; 
-     
+    
     //create fft 
     fft = ctx.createAnalyser();
     fft.smoothingTimeConstant = 0.3;
     fft.fftSize = samples; 
-     
+    
     //connect them up into a chain 
     src.connect(fft); 
     fft.connect(ctx.destination); 
-     
+    
     //play immediately 
     src.start(0); 
     setup = true; 

@@ -10,9 +10,32 @@ var particle_positions, fakeFFT;
 var line_position, line_color,line_geometry, line_material, line_mesh;
 var isPlaying = false, initSound = false;
 // var start = Date.now();
-var valueShell = {
-	value01: 1000,
-	value02: 2000
+var gui;
+var soundChannel = {
+	vocal: {
+		position: 0,
+		max: 255,
+		min: 0,
+		value: 100 // best: 8
+	},
+	bass: {
+		position: 20,
+		max: 255,
+		min: 0,
+		value: 100
+	},
+	high: {
+		position: 40,
+		max: 255,
+		min: 0,
+		value: 100
+	},
+	low: {
+		position: 60,
+		max: 255,
+		min: 0,
+		value: 100
+	}
 };
 
 var sound_group;
@@ -22,12 +45,40 @@ render();
 // Sound
 
 function initGUI(){
-	var gui = new dat.GUI({autoPlace: false});
+	// initial GUI
+	gui = new dat.GUI({autoPlace: false});
 	var customContainer = document.getElementById('my-gui-container');
 	customContainer.appendChild(gui.domElement);
-	gui.add(valueShell, 'value01', 50, 10000);
-	gui.add(valueShell, 'value02', 50, 20000);
+	// Vocal panel
+	var gui_vocal = gui.addFolder("Vocal");
+	gui_vocal.add(soundChannel.vocal, 'position', 0, fftSizeTemp);
+	gui_vocal.add(soundChannel.vocal, 'min', 0, 150);
+	gui_vocal.add(soundChannel.vocal, 'max', 151, 255);
+	gui_vocal.add(soundChannel.vocal, 'value', 0, 255);
+	gui_vocal.open();
+	// Bass panel
+	var gui_bass = gui.addFolder("Bass");
+	gui_bass.add(soundChannel.bass, 'position', 0, fftSizeTemp);
+	gui_bass.add(soundChannel.bass, 'min', 0, 150);
+	gui_bass.add(soundChannel.bass, 'max', 151, 255);
+	gui_bass.add(soundChannel.bass, 'value', 0, 255);
+	gui_bass.open();
+	// High panel
+	var gui_high = gui.addFolder("High");
+	gui_high.add(soundChannel.high, 'position', 0, fftSizeTemp);
+	gui_high.add(soundChannel.high, 'min', 0, 150);
+	gui_high.add(soundChannel.high, 'max', 151, 255);
+	gui_high.add(soundChannel.high, 'value', 0, 255);
+	gui_high.open();
+	// Low panel
+	var gui_low = gui.addFolder("Low");
+	gui_low.add(soundChannel.low, 'position', 0, fftSizeTemp);
+	gui_low.add(soundChannel.low, 'min', 0, 150);
+	gui_low.add(soundChannel.low, 'max', 151, 255);
+	gui_low.add(soundChannel.low, 'value', 0, 255);
+	gui_low.open();
 
+	console.log("GUI initialized");
 }
 
 function init(){
@@ -163,7 +214,7 @@ function init(){
 		var color = new THREE.Color();
 		color.g = i / 5;
 		color.r = i / 3;
-		console.log(color.getHex());
+		// console.log(color.getHex());
 		var sound_mat = new THREE.MeshBasicMaterial( {color: color.getHex()} );
 		var sound_mesh = new THREE.Mesh(sound_geo, sound_mat);
 		sound_mesh.position.x = 20 * i + 50;
@@ -184,8 +235,9 @@ function render(){
 	if (isPlaying) {
 
 		updateFFT();
+		updateGUI();
 		parseFFT();
-		updatePosition();
+		updatePosition(); 
 
 	}
 	checkDistance();
@@ -209,20 +261,36 @@ function updateFFT(){
 			var total = 0;
 			for (var t = i; t < i*nFFT; t++) {
 				total += fftList[t];
-				
 			}
 			total = total / nFFT;
 			(total >= threshold[i]) ? fftBands[i] = total : fftBands[i] = threshold[i];
 
-		}	
+		}
     // console.log(fftList);
-}else{
-	for (i in fftList) {
-		fftList[i] = 0;
+	}else{
+		for (i in fftList) {
+			fftList[i] = 0;
+		}
 	}
+
+	
+
 }
 
-
+function updateGUI(){
+	// GUI update
+	soundChannel.vocal.value = fftList[Math.floor(soundChannel.vocal.position)];
+	soundChannel.bass.value = fftList[Math.floor(soundChannel.bass.position)];
+	soundChannel.high.value = fftList[Math.floor(soundChannel.high.position)];
+	soundChannel.low.value = fftList[Math.floor(soundChannel.low.position)];
+	// console.log(gui.__folders.Vocal.__controllers);
+	for (var t in gui.__folders) {
+		var target = gui.__folders[t];
+		for (var i in target.__controllers) {
+			target.__controllers[i].updateDisplay();
+		}
+	}
+	
 }
 
 function updateFakeFFT(){
@@ -312,34 +380,13 @@ function updatePosition(){
 
   attr.position.needsUpdate = true;
 
-	// var timer = new Date().getTime() * 0.0005;
-  // camera.position.x = particle_positions[100].x;
-  // camera.position.y = particle_positions[100].y;
-  // camera.position.z = particle_positions[100].z;
-  // camera.lookAt(particle_positions[10]);
-  // camera.updateProjectionMatrix();
-
-
-	// var zoomMax = 1.3, zoom = 0.8;
-	// if (dancer.isKick == true) {
-	// 	camera.zoom += (zoomMax - camera.zoom)/5;
-	// 	camera.updateProjectionMatrix();
-	// 	console.log("dancer kicked");
-	// }else{
-	// 	camera.zoom += (zoom - camera.zoom)/50;
-	// 	camera.updateProjectionMatrix();
-
-	// }
 
 	// scalling the bars
 	for (var i = 0; i < nFFTBands; i++) {
 		// console.log(sound_group);
 		sound_group.children[i].scale.y = fftBands[i]/100;
 	}
-	// testing camera zoom
-	// camera.zoom = fftBands[4]/255;
-	// console.log(fftBands[4]);
-	// camera.updateProjectionMatrix();
+
 
 }
 
@@ -372,7 +419,7 @@ document.getElementById('audio-control').addEventListener('click', musicControl,
 // *********** For debug ***********
 document.addEventListener('click', debug, false);
 function testClick() {
-	console.log('Here is the FFT');
+	console.log('Document Clicked');
 	// var fftList = dancer.getSpectrum();
 	// console.log(fftList.length);
 
@@ -386,7 +433,7 @@ function debug() {
 		fft.getByteFrequencyData(array);
 	}
 
-    // console.log(array);
+    console.log(array);
 }
 // ********** temparary trash area ***********
 
