@@ -1,6 +1,33 @@
 
 
 // Web Audio end
+var sc = new SoundObject(1024);
+var fileLoader = new FileLoader();
+var files = [  // an Array with file objects
+	// Music main file
+	{
+		name: "music",
+		path: "sounds/day.mp3",
+		type: "arraybuffer"
+	}
+];
+fileLoader.start(files);
+// Create a custom event to fire when loading is compeleted
+var allFilesLoaded = new Event('fire');
+document.addEventListener('fire', function(e){
+	console.log("FIRRRRRRRRRRE!!!!!!");
+	document.getElementById('audio-play').classList.add('avl');
+	sc.init(fileLoader.content.music);
+});
+document.getElementById('audio-play').addEventListener('click', function(){
+	sc.play();
+});
+document.getElementById('audio-pause').addEventListener('click', function(){
+	sc.pause();
+});
+// document.getElementById('event-fft').addEventListener('click', function(){
+// 	soundobj2.updateFFT();
+// });
 
 var camera, scene, renderer, controls, stats, fftList;
 var coreBall;
@@ -8,9 +35,16 @@ var particle, particles_geo, particle_met, pt_uniforms,
 	particles_radius = 150, fftSizeTemp = 256, fftBands = [], nFFTBands = 5;
 var particle_positions, fakeFFT;
 var line_position, line_color,line_geometry, line_material, line_mesh;
-var isPlaying = false, initSound = false;
 // var start = Date.now();
 var gui;
+// var cameraControls = {
+// 	perspective: 1
+// };
+var cameraControls = {
+	fov: 45, //this is where we can make fisheye lens happen
+	near: 1,
+	far: 1000
+};
 var soundChannel = {
 	vocal: {
 		position: 0,
@@ -52,8 +86,8 @@ function initGUI(){
 	// Vocal panel
 	var gui_vocal = gui.addFolder("Vocal");
 	gui_vocal.add(soundChannel.vocal, 'position', 0, fftSizeTemp);
-	gui_vocal.add(soundChannel.vocal, 'min', 0, 150);
-	gui_vocal.add(soundChannel.vocal, 'max', 151, 255);
+	gui_vocal.add(soundChannel.vocal, 'min', 0, 150).name("Max Value");
+	gui_vocal.add(soundChannel.vocal, 'max', 151, 255).name("Min Value");
 	gui_vocal.add(soundChannel.vocal, 'value', 0, 255);
 	gui_vocal.open();
 	// Bass panel
@@ -77,6 +111,12 @@ function initGUI(){
 	gui_low.add(soundChannel.low, 'max', 151, 255);
 	gui_low.add(soundChannel.low, 'value', 0, 255);
 	gui_low.open();
+	// Camera
+	var gui_camera = gui.addFolder("Camera");
+	gui_camera.add(cameraControls, 'fov', 30, 120).name("FOV");
+	gui_camera.add(cameraControls, 'near', 1, 50).name("Near");
+	gui_camera.add(cameraControls, 'far', 500, 3000).name("Far");
+
 
 	console.log("GUI initialized");
 }
@@ -86,7 +126,7 @@ function init(){
 	// Scene
 	scene = new THREE.Scene();
 	// Camera
-	camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 1000 );
+	camera = new THREE.PerspectiveCamera( cameraControls.fov, window.innerWidth / window.innerHeight, cameraControls.near, cameraControls.far );
 	camera.position.set( 0, 0, 500 );
 	// Lights
 		var light = new THREE.PointLight( 0xff00ff );
@@ -95,9 +135,9 @@ function init(){
 	// Core Mesh
 	// var geo = new THREE.IcosahedronGeometry(50, 1);
 	var geo = new THREE.TorusKnotGeometry( 100, 10, 100, 6, 5 );
-	var matt = new THREE.MeshLambertMaterial({
-		color: 0x556678,
-	})
+	// var matt = new THREE.MeshLambertMaterial({
+	// 	color: 0x556678,
+	// })
 	// var normalTexture = new THREE.MeshNormalMaterial({wireframe: false});
 	var depthTexture = new THREE.MeshDepthMaterial({wireframe: false});
 	coreBall = new THREE.Mesh(geo, depthTexture);
@@ -221,7 +261,6 @@ function init(){
 		sound_group.add(sound_mesh);
 	}
 	scene.add(sound_group);
-
 }
 // ***************************************
 // *************** RENDER ****************
@@ -232,7 +271,7 @@ function render(){
 	scene.rotation.y += 0.003;
 	scene.rotation.x += 0.002;
 	// update position when fft is ready
-	if (isPlaying) {
+	if (sc.isPlaying) {
 
 		updateFFT();
 		updateGUI();
@@ -250,10 +289,9 @@ function render(){
 // ************ END RENDER ***************
 // ***************************************
 function updateFFT(){
-	if (isPlaying) {
-		var array =  new Uint8Array(fft.frequencyBinCount);
-		fft.getByteFrequencyData(array);
-		fftList = array;
+	if (sc.isPlaying) {
+		sc.updateFFT();
+		fftList = sc.fft;
 		var nFFT = Math.floor(fftList.length / nFFTBands);
 		// console.log(nFFT);
 		var threshold = [50, 100, 150, 200, 250];
@@ -279,10 +317,10 @@ function updateFFT(){
 
 function updateGUI(){
 	// GUI update
-	soundChannel.vocal.value = fftList[Math.floor(soundChannel.vocal.position)];
-	soundChannel.bass.value = fftList[Math.floor(soundChannel.bass.position)];
-	soundChannel.high.value = fftList[Math.floor(soundChannel.high.position)];
-	soundChannel.low.value = fftList[Math.floor(soundChannel.low.position)];
+	// soundChannel.vocal.value = fftList[Math.floor(soundChannel.vocal.position)];
+	// soundChannel.bass.value = fftList[Math.floor(soundChannel.bass.position)];
+	// soundChannel.high.value = fftList[Math.floor(soundChannel.high.position)];
+	// soundChannel.low.value = fftList[Math.floor(soundChannel.low.position)];
 	// console.log(gui.__folders.Vocal.__controllers);
 	for (var t in gui.__folders) {
 		var target = gui.__folders[t];
@@ -290,7 +328,12 @@ function updateGUI(){
 			target.__controllers[i].updateDisplay();
 		}
 	}
-	
+	//GUI camera
+	camera.fov = cameraControls.fov;
+	camera.near = cameraControls.near;
+	camera.far = cameraControls.far;
+
+	camera.updateProjectionMatrix();
 }
 
 function updateFakeFFT(){
@@ -397,24 +440,6 @@ function updateAudioData(){
 	// female voice: 2 ~ 12 khz
 }
 
-// MUSIC CONTROL
-function musicControl() {
-	if (isPlaying == true) {
-		ctx.suspend();
-		isPlaying = false;
-	}else{
-		if (!initSound) {
-			play();
-			initSound = true;
-		}else{
-			ctx.resume();
-		}
-
-		isPlaying = true;
-	}
-}
-document.getElementById('audio-control').addEventListener('click', musicControl, false);
-
 
 // *********** For debug ***********
 document.addEventListener('click', debug, false);
@@ -423,17 +448,17 @@ function testClick() {
 	// var fftList = dancer.getSpectrum();
 	// console.log(fftList.length);
 
-	debug();
+	// debug();
 }
 
 function debug() {
 	// console.log(audioFFT);
-	if(isPlaying){
-		var array =  new Uint8Array(fft.frequencyBinCount);
-		fft.getByteFrequencyData(array);
-	}
+	// if(isPlaying){
+	// 	var array =  new Uint8Array(fft.frequencyBinCount);
+	// 	fft.getByteFrequencyData(array);
+	// }
 
-    console.log(array);
+    // console.log(array);
 }
 // ********** temparary trash area ***********
 

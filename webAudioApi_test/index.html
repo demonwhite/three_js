@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Web Audio Api Test</title>
+	<style type="text/css">
+	.cover {
+		width: 100%;
+		height: 100%;
+		padding-top: 30%;
+		position: absolute;
+		text-align: center; 
+		z-index: -1;
+		background-color: rgba(0,0,0,.8);
+		transition: background-color 1.0s ease
+	}
+	.fade {
+		background-color: rgba(0,0,0,0);
+	}
+	.fade progress {
+		display: none;
+	}
+	progress {
+		width: 100%;
+	}
+	</style>
+</head>
+<body>
+	<div class="cover" id="bar-container">
+		<progress id="progressBar" value="0" max="100"></progress>
+	</div>
+	<input id="play" type="button" value="play" />
+	<input id="pause" type="button" value="pause" />
+	<input id="fft" type="button" value="log fft" />
+	<input id="event-play" type="button" value="Test Event" />
+	<input id="event-pause" type="button" value="Test Event pause" />	
+	<input id="event-fft" type="button" value="Test Event FFT" />
+	
+	<canvas id='canvas' width="800" height="350"></canvas>
+
+<script type="text/javascript" src="js/SoundControl.js"></script>
+<script type="text/javascript" src="js/FileLoader.js"></script>
+
+<script>
+
+var files = [
+		{
+			name: "music",
+			path: "files/hifi.mp3",
+			type: "arraybuffer"
+		},
+		{
+			name: "anothermusic",
+			path: "files/summer.mp3",
+			type: "arraybuffer"
+		},
+		{
+			name: "blender",
+			path: "files/test.json",
+			type: "json"
+		}
+	];
+
+
+// ===================================================		
+// var soundobj = new SoundObject("files/spring.mp3", 1024, 'progressBar', 'bar-container');
+// soundobj.init();
+// document.getElementById('play').addEventListener('click', playMusic);
+// document.getElementById('pause').addEventListener('click', pauseMusic);
+// document.getElementById('fft').addEventListener('click', logFFT);
+// function playMusic() {
+// 	if (soundobj.fileIsReady) {
+// 		soundobj.play();
+// 	}else{
+// 		console.log("the music is not ready yet");
+// 	}
+// }
+// function pauseMusic() {
+// 	if (soundobj.fileIsReady) {
+// 		soundobj.pause();
+// 	}else{
+// 		console.log("the music is not ready yet");
+// 	}
+// }
+// function logFFT() {
+// 	soundobj.updateFFT();
+// }
+var fileLoader = new FileLoader();
+var soundobj2 = new SoundObject(1024);
+var externalMusic, jsonObj;
+fileLoader.start(files);
+var allFilesLoaded = new Event('fire');
+document.addEventListener('fire', function(e){
+	console.log("FIRRRRRRRRRRE!!!!!!");
+
+	soundobj2.init(fileLoader.content.music);
+});
+document.getElementById('event-play').addEventListener('click', function(){
+	soundobj2.play();
+});
+document.getElementById('event-pause').addEventListener('click', function(){
+	soundobj2.pause();
+});
+document.getElementById('event-fft').addEventListener('click', function(){
+	soundobj2.updateFFT();
+});
+// downloadFiles(files);
+
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

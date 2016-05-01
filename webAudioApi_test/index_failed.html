@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Web Audio Api Test</title>
+</head>
+<body>
+<progress id="progressBar" value="0" max="100"></progress>
+	<input type="file" value="Upload File" id="uploadedFile" />
+	<input id="play" type="button" value="play" />
+	<input id="pause" type="button" value="pause" />
+	<canvas id='canvas' width="800" height="350"></canvas>
+	<div id="info">
+                    HTML5 Audio API showcase | An Audio Viusalizer
+    </div>
+
+<script>
+	// var context;
+	// var contextClass = (window.AudioContext || 
+	// 	window.webkitAudioContext || 
+	// 	window.mozAudioContext || 
+	// 	window.oAudioContext || 
+	// 	window.msAudioContext);
+	// if (contextClass) {
+	// 	// Web Audio API is available.
+	// 	context = new contextClass();
+	// } else {
+	//   // Web Audio API is not available. Ask the user to use a supported browser.
+	// 	console.log("there is an issue with creating Audio Context");
+	// }
+	// var request = new XMLHttpRequest();
+	// var sourceBuffer = context.createBufferSource();
+	// var bar = document.getElementById('progressBar');
+
+	// request.open('GET', 'spring.mp3', true);
+	// request.responseType = 'arraybuffer';
+
+	// request.addEventListener("progress", updateProgress);
+	// request.addEventListener("load", loadCompleted);
+
+
+	// function updateProgress (event) {
+	// 	if (event.lengthComputable) {
+	// 		var percentComplete = event.loaded / event.total * 100;
+	// 		bar.value = percentComplete;
+	// 	    console.log(percentComplete);
+	// 	} else {
+	// 	    // Unable to compute progress information since the total size is unknown
+	// 	    console.log("cannot compute!");
+	// 	}
+	// };
+	// function loadCompleted (event) {
+	// 	console.log("ON LOAD!!!");
+	// 	// request.removeEventListener("progress", updateProgress, false);
+	//     var undecodedAudio = request.response;
+	//     context.decodeAudioData(undecodedAudio, function (buffer) {
+	//         // The contents of our mp3 is now an AudioBuffer
+	//         sourceBuffer.buffer = buffer;
+	//         sourceBuffer.connect(context.destination);
+	//     });
+	// };
+
+
+	// function playSound() {
+	// 	console.log("play the sound");
+	// 	if (context.state != "suspended") {
+	// 		sourceBuffer.start(0);
+	// 	}else{
+	// 		context.resume();
+	// 	}
+	// }
+	// function pauseSound() {
+	// 	console.log("pause the sound");
+	// 	context.suspend();
+	// }
+	// request.send();
+
+
+	// Creating a sound controller class
+	// This class should obtain:
+	// WebAudioContext / XMLHttpRequest / Playback controls / FFT gets
+	var SoundObject = function(url, progressBarID, loaderDivID) {
+		console.log("creating Sound Object Class");
+		this.url = url;
+		var contextClass = (window.AudioContext || 
+			window.webkitAudioContext || 
+			window.mozAudioContext || 
+			window.oAudioContext || 
+			window.msAudioContext);
+		if (contextClass) {
+			// Web Audio API is available.
+			this.context = new contextClass();
+			console.log("here is our context");
+			console.log(this.context);
+		} else {
+		  // Web Audio API is not available. Ask the user to use a supported browser.
+			console.log("there is an issue with creating Audio Context");
+		}
+		this.request = new XMLHttpRequest();
+		this.sourceBuffer = this.context.createBufferSource();
+		this.loadedPercentage = 0;
+		this.progressBarID = progressBarID;
+		this.loaderDivID = loaderDivID;
+	}
+	SoundObject.prototype.init = function() {
+
+		console.log("Class initiated: ");
+		this.request.open('GET', this.url, true);
+		this.request.responseType = 'arraybuffer';
+		//add event listener
+		this.request.progressBarID = this.progressBarID;
+		this.request.loaderDivID = this.loaderDivID;
+		this.request.onreadystatechange = function (e) {
+			console.log(e.target.parentElement);
+	    };
+		this.request.addEventListener("progress", this.__updateProgress, false);
+		this.request.addEventListener("load", this.__loadCompleted, false);
+		this.request.send();
+	}
+	SoundObject.prototype.play = function() {
+		console.log("play the sound");
+		if (this.context.state != "suspended") {
+			this.sourceBuffer.start(0);
+		}else{
+			this.context.resume();
+		}
+	}
+	SoundObject.prototype.pause = function() {
+			console.log("pause the sound");
+			this.context.suspend();	
+	}
+	SoundObject.prototype.ifFileReady = function () {
+		switch(this.request.readyState) {
+			case 3:
+				console.log("The file is still loading");
+				return false;
+				break;
+			case 4:
+				console.log("The file is ready");
+				return true;
+				break;
+			default:
+				console.log("There is no contact yet");
+				return false;
+				break;
+		}
+	}
+	SoundObject.prototype.__updateProgress = function(event) {
+		if (event.lengthComputable) {
+			var percentComplete = event.loaded / event.total * 100;
+			// this.progressBarID refers to the request object itself
+			document.getElementById(this.progressBarID).value = percentComplete;		    
+		} else {
+		    // Unable to compute progress information since the total size is unknown
+		    console.log("cannot compute!");
+		}
+	}
+	SoundObject.prototype.__loadCompleted = function(event) {
+		console.log("Sound finished downloading");
+		document.getElementById(this.loaderDivID).remove();
+		console.log(event);
+		var undecodedAudio = event.parentNode.request.response;
+	    this.context.decodeAudioData(undecodedAudio, function (buffer) {
+	        // The contents of our mp3 is now an AudioBuffer
+	        this.sourceBuffer.buffer = buffer;
+	        this.sourceBuffer.connect(context.destination);
+	    });
+	}
+
+		
+var soundobj = new SoundObject("spring.mp3", 'progressBar', 'progressBar');
+soundobj.init();
+document.getElementById('play').addEventListener('click', soundobj.play);
+document.getElementById('pause').addEventListener('click', soundobj.pause);
+
+
+
+
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
