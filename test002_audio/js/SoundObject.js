@@ -6,6 +6,7 @@ var SoundObject = function(sampleSize) {
 	this.isPlaying = false;
 	this.isReady = false;
 	this.debugMode = false;
+	this.time = "no available value";
 	var contextClass = (window.AudioContext || 
 		window.webkitAudioContext || 
 		window.mozAudioContext || 
@@ -32,14 +33,17 @@ var SoundObject = function(sampleSize) {
 SoundObject.prototype.init = function(arrayBufferObject) {
 	console.log("Class initiated: ");
 	this._decodeAudioData(arrayBufferObject);
+	(arrayBufferObject.time)? this.time = arrayBufferObject.time : console.log('no time available');
 	this.isReady = true;
 }
 SoundObject.prototype.play = function() {
 	//
 	if (this.debugMode) console.log("play the sound");
 	//
+
 	if (this.context.state != "suspended") {
 		this.sourceBuffer.start(0);
+		
 	}else{
 		this.context.resume();
 	}
@@ -51,6 +55,7 @@ SoundObject.prototype.pause = function() {
 	//
 	this.context.suspend();	
 	this.isPlaying = false;
+
 }
 SoundObject.prototype.updateFFT = function() {
 	// get the frequency from 0 ~ 255

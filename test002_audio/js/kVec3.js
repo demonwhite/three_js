@@ -27,7 +27,7 @@ KVec3.prototype.FFTin = function(_fftBin){
 	// FFT value is 0-255
 	// _fftBin *= 2;
 	var max_dist = this.originalRadius * 1.1;
-	if (_fftBin >= 100) {
+	if (_fftBin >= 200) {
 		this.radius += (max_dist - this.radius)/5;
 		this.onFFT = true;
 	}else{
@@ -43,7 +43,7 @@ KVec3.prototype.movePos = function(){
 	if (this.theta <= this.rangeMin || this.theta >= this.rangeMax) {
 		this.velocity *= -1;		
 	}
-	this.theta += this.velocity;
+	this.theta += this.velocity * this.SEED;
 	this.pi += ( 1 * Math.sin(this.theta) ) * .001;
 	// this.pi += this.velocity;
 	this.x = this.radius * Math.sin(this.theta) * Math.cos(this.pi);

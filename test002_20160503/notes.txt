@@ -1,0 +1,55 @@
+*TUTORIALS*
+-
+EXPERIMENTING WITH WEB AUDIO API + THREE.JS (WEBGL)
+http://srchea.com/experimenting-with-web-audio-api-three-js-webgl
+-
+How to create Audio-Visualizations with JavaScript & HTML
+http://www.patrick-wied.at/blog/how-to-create-audio-visualizations-with-javascript-html
+-
+Making Audio Reactive Visuals
+http://www.airtightinteractive.com/2013/10/making-audio-reactive-visuals/
+-
+HTML Canvas Deep Dive (eBook)
+http://joshondesign.com/p/books/canvasdeepdive/chapter12.html
+-
+Vertex displacement with a noise function using GLSL and three.js
+https://www.clicktorelease.com/blog/vertex-displacement-noise-3d-webgl-glsl-three-js
+-
+Instructables Universe in Three.js by pseaton
+http://www.instructables.com/id/Instructables-Universe-in-Threejs/
+-
+
+---------------------------------------------------------------------------------------------------------------------
+*GIT*
+-
+Dancer.js
+https://github.com/jsantell/dancer.js
+-
+WebGL-Audio-Visualizer
+https://github.com/macobo/WebGL-Audio-Visualization
+-
+THREENODE.js
+http://badassjs.com/post/12885773103/threenodesjs-a-visual-webgl-scene-editor
+-
+soundviz
+https://github.com/drojdjou/squareroot.js/tree/gl/demo/soundviz
+-
+webaudiox
+https://github.com/jeromeetienne/webaudiox
+-
+SoundManager 2
+http://www.schillmania.com/projects/soundmanager2/
+-
+
+---------------------------------------------------------------------------------------------------------------------
+*Resources*
+-
+Experimenting with Three.js shaders and the ShaderMaterial
+http://blog.2pha.com/experimenting-threejs-shaders-and-shadermaterial
+-
+NPR Sketch Shader
+https://www.clicktorelease.com/code/npr-shading/
+-
+Steven Wittens
+https://acko.net/blog/mathbox2-pt2/
+-

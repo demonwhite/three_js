@@ -30,6 +30,7 @@ FileLoader.prototype.start = function(_files) {
 		console.log("log finished");
 		// console.log(fo);
 		fo[e.target.fileID] = e.target.response;
+		fo[e.target.fileID].time = e.target.time;
 		if (flag === fl.length) {
 			// when all the files are loaded
 			document.dispatchEvent(allFilesLoaded);
@@ -43,6 +44,7 @@ FileLoader.prototype.start = function(_files) {
 		var filerequest = new XMLHttpRequest();
 		filerequest.open('GET', this.fileList[object].path, true);
 		filerequest.responseType = this.fileList[object].type;
+		filerequest.time = this.fileList[object].time;
 		filerequest.fileID = this.fileList[object].name;
 		filerequest.totalBar = this.totalBar;
 		filerequest.indivisualBar = this.indivisualBar;
