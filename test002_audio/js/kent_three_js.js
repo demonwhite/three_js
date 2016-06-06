@@ -48,6 +48,8 @@ var cameraControls = {
 	fov: 65, //this is where we can make fisheye lens happen
 	near: 1,
 	far: 1000,
+	zoom: 2.0,
+	rotateSpeed: 0.001,
 	x: 0,
 	y: 0,
 	z: 300
@@ -121,8 +123,10 @@ function initGUI(){
 	// Camera
 	var gui_camera = gui.addFolder("Camera");
 	gui_camera.add(cameraControls, 'fov', 30, 120).name("FOV");
+	gui_camera.add(cameraControls, 'zoom', 2.0, 5.0).name("Zoom");
 	gui_camera.add(cameraControls, 'near', 1, 50).name("Near");
 	gui_camera.add(cameraControls, 'far', 500, 3000).name("Far");
+	gui_camera.add(cameraControls, 'rotateSpeed', 0.0, 0.1).name("Rotation");
 	gui_camera.open();
 
 	console.log("GUI initialized");
@@ -232,10 +236,10 @@ function init(){
 	// line geometry
 
 	line_material = new THREE.LineBasicMaterial( {
-						// color: 0xFFFFFF,
+						// color: 0xffffff,
 						// linewidth: 1,
 						vertexColors: THREE.VertexColors,
-						blending: THREE.SubtractiveBlending
+						blending: THREE.SubtractiveBlending,
 						transparent: true
 					} );
 	line_mesh = new THREE.LineSegments(line_geometry, line_material);
@@ -299,8 +303,9 @@ function render(){
 	// core.rotation.x += 0.005;
 	// core.rotation.y += 0.005;
 	// if( dancer.isPlaying() ) console.log(dancer.getSpectrum()[10]);
-	scene.rotation.y += 0.003;
-	scene.rotation.x += 0.002;
+	scene.rotation.y += cameraControls.rotateSpeed;
+	scene.rotation.x += cameraControls.rotateSpeed;
+	checkZoom();
 	// update position when fft is ready
 	updateGUI();
 
@@ -364,9 +369,12 @@ function updateGUI(){
 		soundChannel.vocal.value = fftList[Math.floor(soundChannel.vocal.position)];
 	}
 	//GUI camera
+	// camera.position.z = cameraControls.zoom * 100;
+	// cameraControls.fov = 150 - 100 * cameraControls.zoom * 0.2;
 	camera.fov = cameraControls.fov;
 	camera.near = cameraControls.near;
 	camera.far = cameraControls.far;
+	
 
 	camera.updateProjectionMatrix();
 }
@@ -395,8 +403,14 @@ function parseFFT(){
 	// }
 }
 
+function checkZoom() {
+	// var zoomlevel = camera.
+}
+
 function checkDistance() {
 	var target, search;
+
+	//Line operations
 	var max_dist = 40.0, max_connections = 3;
 	var vertexpos = 0;
 	var colorpos = 0;
@@ -426,7 +440,7 @@ function checkDistance() {
 				line_position[ vertexpos++ ] = search.y;
 				line_position[ vertexpos++ ] = search.z;
 
-				var alpha = dist / max_dist;
+				var alpha = 1.0 - dist / max_dist;
 
 				line_color[ colorpos++ ] = alpha;
 				line_color[ colorpos++ ] = alpha;
@@ -459,6 +473,15 @@ function updatePosition(){
 		// particle_positions[p].randomUpdate();
 		// particle_positions[p].FFTin(fftList[p]);
 		particle_positions[p].movePos();
+		//Distance push 
+		var target, search;
+		target = particle_positions[p];
+		for (s in particle_positions){
+			search = particle_positions[s];
+			if (target.ID != search.ID) {
+				target.pushPos(search);
+			}
+		}
 		attr.position.array[p*3] = particle_positions[p].x;
 		attr.position.array[p*3 +1] = particle_positions[p].y;
 		attr.position.array[p*3 +2] = particle_positions[p].z;

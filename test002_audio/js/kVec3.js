@@ -1,15 +1,20 @@
 // New class Kvec3 will be from THREE.js Vector3
 function KVec3(_r, _id){
 	// this.SEED = Math.random() * 5;
-	this.rangeMax = Math.PI/2 * Math.random() + Math.PI/2;
-	this.rangeMin = Math.PI/2 * Math.random();
-	this.velocity = .01 * ((Math.random()-0.5)*2);
+	this.rangeMax = Math.PI/3 * Math.random() * 2 + Math.PI/3;
+	this.rangeMin = Math.PI/3 * Math.random();
+	this.velocity = .02 * ((Math.random()-0.5));
+	(this.velocity <= 0) ? this.velocity - 0.01 : this.velocity + 0.01; 
+	// this.phiNoise = ;
 	this.numConnected = 0;
 	this.radius = this.originalRadius = _r; //distance to the center (0,0)
-	this.theta = Math.random() * (this.rangeMax - this.rangeMin) + this.rangeMin;
-	this.pi = (Math.random()*2 - .5) * Math.PI;
+	// this.theta = Math.random() * (this.rangeMax - this.rangeMin) + this.rangeMin;
+	this.theta = Math.random() * Math.PI * 2;
+	// this.pi = (Math.random()*2 - .5) * Math.PI;
+	this.phi = Math.random() * (this.rangeMax-this.rangeMin) + this.rangeMin;
 	this.SEED = Math.random();
 	this.ID = _id;
+	this.FIELD = 10 + ( Math.random() * 10 );  //a force field for keeping away from others
 	this.onFFT = false;
 	var _x, _y, _z;
 	_x = this.radius * Math.sin(this.theta) * Math.cos(this.pi);
@@ -26,7 +31,7 @@ KVec3.prototype = THREE.Vector3.prototype;
 KVec3.prototype.FFTin = function(_fftBin){
 	// FFT value is 0-255
 	// _fftBin *= 2;
-	var max_dist = this.originalRadius * 1.1;
+	var max_dist = this.originalRadius + _fftBin/10;
 	if (_fftBin >= 200) {
 		this.radius += (max_dist - this.radius)/5;
 		this.onFFT = true;
@@ -37,19 +42,57 @@ KVec3.prototype.FFTin = function(_fftBin){
 };
 
 KVec3.prototype.movePos = function(){
-	var s = noise.simplex2(this.ID, Date.now()) * 5;
+	// var s = noise.simplex2(this.ID, Date.now()) * 0.005;
 	// this.theta += (Math.sin(this.SEED) *2 -.5) * this.SEED/100;
 	// this.speed = Math.sin(this.ID) * .01;
-	if (this.theta <= this.rangeMin || this.theta >= this.rangeMax) {
-		this.velocity *= -1;		
+	if (this.phi < this.rangeMin || this.phi > this.rangeMax) {
+		this.SEED *= -1;	
+	}else{
+		this.SEED += 0.001;
 	}
-	this.theta += this.velocity * this.SEED;
-	this.pi += ( 1 * Math.sin(this.theta) ) * .001;
+
+	// this.theta += this.velocity * this.SEED;
+	// this.pi += ( 1 * Math.sin(this.theta) ) * .001;
+
+	// ** theta 360 degree
+	// ** phi 0 - 180 degree 0-PI
+
+
+	this.phi += this.SEED/500;
+	this.theta += this.velocity;
+	// this.phi = Math.sin(this.theta/10) * this.rangeMax;
+
+
+	// this.theta = this.rangeMax;
+	// this.pi = this.rangeMax;
+
 	// this.pi += this.velocity;
-	this.x = this.radius * Math.sin(this.theta) * Math.cos(this.pi);
-	this.y = this.radius * Math.sin(this.theta) * Math.sin(this.pi);
-	this.z = this.radius * Math.cos(this.theta);
+	var force = new THREE.Vector3;
+	// force.x = this.radius * Math.sin(this.theta) * Math.cos(this.pi);
+	// force.y = this.radius * Math.sin(this.theta) * Math.sin(this.pi);
+	// force.z = this.radius * Math.cos(this.theta);
+	force.x = this.radius * Math.sin(this.phi) * Math.cos(this.theta);
+	force.y = this.radius * Math.cos(this.phi);
+	force.z = this.radius * Math.sin(this.phi) * Math.sin(this.theta);
+	var dir = force.sub(this);
+	// dir.normalize();
+	// dir.multiplyScalar(13);
+	this.add(dir);
 };
+
+KVec3.prototype.pushPos = function( target ){
+	var dist = this.distanceTo(target);
+	if( dist <= this.FIELD) {
+		this.phi += this.velocity * this.SEED;  //this line actually makes the dot slide!!!
+		this.theta += this.velocity * (Math.random()-0.5);
+		var temp = new THREE.Vector3(this.x, this.y, this.z);
+		temp.sub(target);
+		temp.normalize();
+		this.add(temp);
+		
+	}
+}
+
 //debug
 KVec3.prototype.randomUpdate = function() {
 	console.log('the theta is : ' + this.theta + "/ this x y z: " + this.x +"/" + this.y + "/" + this.z);
