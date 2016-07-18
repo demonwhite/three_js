@@ -36,14 +36,16 @@ var core, earth, dummy;
 var FFT_SIZE = 256;
 var fftList = new Array(FFT_SIZE);
 var particle, particles_geo, particle_met, pt_uniforms,
-	particles_radius = 250, fftBands = [], nFFTBands = 5;
+	particles_radius = 256, fftBands = [], nFFTBands = 5;
 var particle_positions, fakeFFT;
 var line_position, line_color,line_geometry, line_material, line_mesh;
+var laser_position, laser_color, laser_geometry, laser_material, laser_mesh, numLaser = 20;
 // var start = Date.now();
 var ballGroup;
 var gui;
 var information = true, popCloud = false, runningCamera = false;
 var SHADOW_MAP_WIDTH = 2048, SHADOW_MAP_HEIGHT = 1024;
+// the range function
 function map_range(value, low1, high1, low2, high2) {
     return low2 + (high2 - low2) * (value - low1) / (high1 - low1);
 }
@@ -53,37 +55,45 @@ function map_range(value, low1, high1, low2, high2) {
 var cameraControls = {
 	fov: 65, //this is where we can make fisheye lens happen
 	near: 1,
-	far: 1000,
+	far: 5000,
 	zoom: 2.0,
 	rotateSpeed: 0.001,
 	x: 0,
 	y: 0,
-	z: 500
+	z: 500,
+	actionFov: 80,
+	actionTarget: 3
 };
 var soundChannel = {
 	vocal: {
-		position: 0,
-		max: 255,
-		min: 0,
+		position: 25,
+		max: 30,
+		min: 20,
 		value: 100 // best: 8
 	},
 	bass: {
-		position: 20,
-		max: 255,
+		position: 4,
+		max: 10,
 		min: 0,
-		value: 100
+		threshold: 98
 	},
 	high: {
-		position: 40,
-		max: 255,
+		position: 30,
+		max: FFT_SIZE,
+		min: FFT_SIZE*0.3,
+		threshold: 60
+	},
+	low: {
+		position: 5,
+		max: 10,
 		min: 0,
 		value: 100
 	},
-	low: {
-		position: 60,
-		max: 255,
+	full: {
+		position: 4,
+		max: 100,
 		min: 0,
-		value: 100
+		threshold: 95
 	}
 };
 
@@ -98,41 +108,48 @@ function initGUI(){
 	gui = new dat.GUI({autoPlace: false});
 	var customContainer = document.getElementById('my-gui-container');
 	customContainer.appendChild(gui.domElement);
+	// Test panel
+	var gui_full = gui.addFolder("Test");
+	gui_full.add(soundChannel.full, 'position', soundChannel.full.min, soundChannel.full.max).step(1);
+	gui_full.add(soundChannel.full, 'threshold', 0, 100).name("Threshold");
+	// gui_vocal.add(soundChannel.vocal, 'max', 151, 255).name("Min Value");
+	// gui_vocal.add(soundChannel.vocal, 'value', 0, 255);
+	gui_full.open();
 	// Vocal panel
 	var gui_vocal = gui.addFolder("Vocal");
-	gui_vocal.add(soundChannel.vocal, 'position', 0, FFT_SIZE);
-	gui_vocal.add(soundChannel.vocal, 'min', 0, 150).name("Max Value");
-	gui_vocal.add(soundChannel.vocal, 'max', 151, 255).name("Min Value");
-	gui_vocal.add(soundChannel.vocal, 'value', 0, 255);
-	// gui_vocal.open();
+	gui_vocal.add(soundChannel.vocal, 'position', soundChannel.vocal.min, soundChannel.vocal.max).step(1);
+	// gui_vocal.add(soundChannel.vocal, 'min', 0, 150).name("Max Value");
+	// gui_vocal.add(soundChannel.vocal, 'max', 151, 255).name("Min Value");
+	// gui_vocal.add(soundChannel.vocal, 'value', 0, 255);
+	gui_vocal.open();
 	// Bass panel
 	var gui_bass = gui.addFolder("Bass");
-	gui_bass.add(soundChannel.bass, 'position', 0, FFT_SIZE);
-	gui_bass.add(soundChannel.bass, 'min', 0, 150);
-	gui_bass.add(soundChannel.bass, 'max', 151, 255);
-	gui_bass.add(soundChannel.bass, 'value', 0, 255);
-	// gui_bass.open();
+	gui_bass.add(soundChannel.bass, 'position', soundChannel.bass.min, soundChannel.bass.max).step(1);
+	// gui_bass.add(soundChannel.bass, 'min', 0, 150);
+	// gui_bass.add(soundChannel.bass, 'max', 151, 255);
+	// gui_bass.add(soundChannel.bass, 'value', 0, 255);
+	gui_bass.open();
 	// High panel
 	var gui_high = gui.addFolder("High");
-	gui_high.add(soundChannel.high, 'position', 0, FFT_SIZE);
-	gui_high.add(soundChannel.high, 'min', 0, 150);
-	gui_high.add(soundChannel.high, 'max', 151, 255);
-	gui_high.add(soundChannel.high, 'value', 0, 255);
-	// gui_high.open();
+	gui_high.add(soundChannel.high, 'position', soundChannel.high.min, soundChannel.high.max).step(1);
+	// gui_high.add(soundChannel.high, 'min', 0, 150);
+	// gui_high.add(soundChannel.high, 'max', 151, 255);
+	// gui_high.add(soundChannel.high, 'value', 0, 255);
+	gui_high.open();
 	// Low panel
 	var gui_low = gui.addFolder("Low");
-	gui_low.add(soundChannel.low, 'position', 0, FFT_SIZE);
-	gui_low.add(soundChannel.low, 'min', 0, 150);
-	gui_low.add(soundChannel.low, 'max', 151, 255);
-	gui_low.add(soundChannel.low, 'value', 0, 255);
-	// gui_low.open();
+	gui_low.add(soundChannel.low, 'position', soundChannel.low.min, soundChannel.low.max).step(1);
+	// gui_low.add(soundChannel.low, 'min', 0, 150);
+	// gui_low.add(soundChannel.low, 'max', 151, 255);
+	// gui_low.add(soundChannel.low, 'value', 0, 255);
+	gui_low.open();
 	// Camera
 	var gui_camera = gui.addFolder("Camera");
 	gui_camera.add(cameraControls, 'fov', 30, 120).name("FOV");
 	gui_camera.add(cameraControls, 'zoom', 2.0, 5.0).name("Zoom");
-	gui_camera.add(cameraControls, 'near', 1, 50).name("Near");
-	gui_camera.add(cameraControls, 'far', 500, 3000).name("Far");
 	gui_camera.add(cameraControls, 'rotateSpeed', 0.0, 0.1).name("Rotation");
+	gui_camera.add(cameraControls, 'actionFov', 35, 120).name("Action FOV");
+	gui_camera.add(cameraControls, 'actionTarget', 0, FFT_SIZE).name("Target").step(1);
 	gui_camera.open();
 
 	console.log("GUI initialized");
@@ -144,7 +161,7 @@ function init(){
 	scene = new THREE.Scene();
 
 	// Action Camera
-	actionCam = new THREE.PerspectiveCamera( 150, window.innerWidth / window.innerHeight, 0.0001, 500 );
+	actionCam = new THREE.PerspectiveCamera( 80, window.innerWidth / window.innerHeight, 0.0001, 500 );
 	actionCam.position.set(0,0,0);
 	cameraHelper = new THREE.CameraHelper( actionCam );
 	// scene.add( cameraHelper );
@@ -185,7 +202,7 @@ function init(){
 	var matt = new THREE.MeshPhongMaterial({
 		color: 0xffffff,
 		transparent: true,
-		opacity: .9,
+		opacity: .5,
 		shading: THREE.FlatShading,
 		shininess: 0
 	})
@@ -249,12 +266,12 @@ function init(){
 	// 	alphaTest: 0.9,
 	// })
 
-
-	var pointMaterial = new THREE.PointsMaterial({color: 0x000000, size: 0});
+	particles_geo.setDrawRange(0,0);
+	var pointMaterial = new THREE.PointsMaterial({color: 0x000000, size: 0, visible: false});
 	particle = new THREE.Points(particles_geo, pointMaterial);
 	// particle.receiveShadow = true;
 	// particle.castShadow = true;
-	core.add(particle);
+	scene.add(particle);
 
 	// line geometry
 
@@ -267,7 +284,21 @@ function init(){
 					} );
 	line_mesh = new THREE.LineSegments(line_geometry, line_material);
 	line_mesh.geometry.setDrawRange(0, 0);
-	core.add(line_mesh);
+	scene.add(line_mesh);
+
+	//Laser
+	laser_position = new Float32Array(numLaser*2*3);
+	laser_color = new Float32Array(numLaser*2*3);
+	laser_geometry = new THREE.BufferGeometry();
+	laser_geometry.addAttribute('position', new THREE.BufferAttribute(laser_position, 3).setDynamic(true));
+	laser_geometry.addAttribute('color', new THREE.BufferAttribute(laser_color, 3).setDynamic(true));
+	laser_material = new THREE.LineBasicMaterial({
+						vertexColors: THREE.VertexColors
+						});
+	laser_mesh = new THREE.LineSegments(laser_geometry, laser_material);
+
+	scene.add(laser_mesh);
+
 
 	// basis info
 	var info = document.createElement( 'div' );
@@ -281,7 +312,7 @@ function init(){
 	document.body.appendChild( info );
 	// Renderer
 	renderer = new THREE.WebGLRenderer( { antialias: true } );
-	renderer.setClearColor( 0xDDDDDD );
+	renderer.setClearColor( 0xd9d0d0 );
 	renderer.autoClear = true;
 	renderer.setPixelRatio( window.devicePixelRatio );
 	renderer.setSize( window.innerWidth, window.innerHeight );
@@ -306,7 +337,7 @@ function init(){
 	// View Controller
 	controls = new THREE.TrackballControls( camera, renderer.domElement );
 	controls.minDistance = 200;
-	controls.maxDistance = 500;
+	controls.maxDistance = 700;
 
 	// Sound visual test objects
 	// var nSoundObj = nFFTBands;
@@ -327,15 +358,18 @@ function init(){
 
 	// Dummy : follow a point, for action camera to follow
 	dummy = new THREE.Vector3( 1, 1, 1 );
-	dummy.x = particle_positions[3].x;
-	dummy.y = particle_positions[3].y;
-	dummy.z = particle_positions[3].z;
+	dummy.x = particle_positions[cameraControls.actionTarget].x;
+	dummy.y = particle_positions[cameraControls.actionTarget].y;
+	dummy.z = particle_positions[cameraControls.actionTarget].z;
 
 	ballGroup = new THREE.Object3D();
 	var ballGeo = new THREE.SphereBufferGeometry(1, 25, 25);
-	var ballMat = new THREE.MeshPhongMaterial({color: 0x040404,
-												shininess: 2,
-												specular: 0xffffff});
+	var ballMat = new THREE.MeshLambertMaterial({emissive: 0x040404,
+												color: 0x0a0a0a,
+												// shininess: 2,
+												// specular: 0xffffff,
+
+												reflectivity: 0.4});
 	var ballMesh = new THREE.Mesh(ballGeo, ballMat);
 	for (var i = 0; i < FFT_SIZE; i++) {
 		var ballMesh = new THREE.Mesh(ballGeo, ballMat);
@@ -343,7 +377,7 @@ function init(){
 		ballMesh.position.y = particle_positions[i].y;
 		ballMesh.position.z = particle_positions[i].z;
 		ballMesh.castShadow = true;
-		ballMesh.receiveShadow = true;
+		// ballMesh.receiveShadow = true;
 		ballGroup.add(ballMesh);
 	}
 	particle.add(ballGroup);
@@ -368,6 +402,7 @@ function all_rotation(speed){
 // ***************************************
 // *************** RENDER ****************
 function render(){
+	stats.begin();
 	// core.rotation.x += 0.005;
 	// core.rotation.y += 0.005;
 	// if( dancer.isPlaying() ) console.log(dancer.getSpectrum()[10]);
@@ -382,20 +417,28 @@ function render(){
 		parseFFT();
 
 	}
+
+
 	updatePosition(); 
 	checkDistance();
+	updateLaser();
 	updateBalls();
-	updateDummy(particle_positions[3]);
+	updateCore();
+	updateDummy(particle_positions[cameraControls.actionTarget]);
+	updateFOV();
 	// cameraHelper.update();
 	// cameraHelper.visible = true;
 
 	controls.update();
-	stats.update();
+	
 	// k
 	light.position.copy( camera.position );
 	light.position.y += 100;
 	light.position.x += 50;
 	(runningCamera)? renderer.render( scene, actionCam ) : renderer.render( scene, camera );
+
+	stats.end();
+
 	requestAnimationFrame( render );
 
 }
@@ -418,6 +461,7 @@ function updateFFT(){
 
 // *** need some more test ***
 function updateDummy(target_vec) {
+
 	// if dummy is still tracing (out of the field)
 	if (target_vec.distanceTo(dummy) > target_vec.FIELD*2) {
 
@@ -437,6 +481,7 @@ function updateDummy(target_vec) {
 	} 
 	// console.log(dummy);
 	actionCam.position.set(dummy.x, dummy.y, dummy.z);
+	actionCam.fov = cameraControls.actionFov;
 	actionCam.lookAt(target_vec);
 	actionCam.updateProjectionMatrix();
 }
@@ -474,7 +519,7 @@ function updateGUI(){
 	//GUI camera
 	// camera.position.z = cameraControls.zoom * 100;
 	// cameraControls.fov = 150 - 100 * cameraControls.zoom * 0.2;
-	camera.fov = cameraControls.fov;
+	// camera.fov = cameraControls.fov;
 	camera.near = cameraControls.near;
 	camera.far = cameraControls.far;
 	
@@ -555,14 +600,40 @@ function checkDistance() {
 
 }
 
-function updatePosition(){
-	var vocal = soundChannel.vocal.value;
-	var bass = soundChannel.bass.value;
-	var nPick = particle_positions.length / nFFTBands;
-	for (var i = 0; i < nPick; i++) {
-		var n = Math.floor(Math.random() * particle_positions.length);
-		particle_positions[n].FFTin(vocal);
+function updateLaser(){
+	var target, end;
+	for (var i=0; i < numLaser; i++) {
+		target = particle_positions[i];
+		end = target.clone();
+		end.multiplyScalar(1000);
+		var id = i*6;
+		laser_position[id] = 0;
+		laser_position[id+1] = 0;
+		laser_position[id+2] = 0;
+		laser_position[id+3] = end.x;
+		laser_position[id+4] = end.y;
+		laser_position[id+5] = end.z;
+
+		laser_color[id] = map_range(i, 0, numLaser, 0, 0.5);
+		laser_color[id+1] = 0;
+		laser_color[id+2] = map_range(i, 0, numLaser*5, 0, 1);
+		// laser_color[id+3] = 0;
+		// laser_color[id+4] = 0;
+		// laser_color[id+5] = 0;
 	}
+
+	laser_mesh.geometry.setDrawRange(0, numLaser*3);
+	laser_mesh.geometry.attributes.position.needsUpdate = true;
+}
+
+function updatePosition(){
+	// var vocal = soundChannel.vocal.value;
+	// var bass = soundChannel.bass.value;
+	// var nPick = particle_positions.length / nFFTBands;
+	// for (var i = 0; i < nPick; i++) {
+	// 	var n = Math.floor(Math.random() * particle_positions.length);
+	// 	particle_positions[n].FFTin(vocal);
+	// }
 
 	var attr = particle.geometry.attributes;
 	for (p in particle_positions) {
@@ -600,6 +671,37 @@ function updatePosition(){
 
 
 }
+
+function updateCore() {
+	var beat = fftList[soundChannel.bass.position];
+	if (beat >= soundChannel.bass.threshold) {
+		// console.log(core.scale);
+		beat *= 0.005;
+		var step = (1 - beat - core.scale.x) * 0.05;
+		core.scale.x += step;
+		core.scale.y += step;
+		core.scale.z += step;
+	}else{
+		var step = (1 - core.scale.x) * 0.05;
+		core.scale.x += step;
+		core.scale.y += step;
+		core.scale.z += step;
+	}
+}
+
+function updateFOV() {
+	var minFOV = cameraControls.fov - 20, maxFOV = cameraControls.fov;
+	var value = fftList[soundChannel.high.position];
+	if(value >= soundChannel.high.threshold){
+		var mapFOV = map_range(value, soundChannel.high.threshold, 100, minFOV, maxFOV);
+		var step = (mapFOV - camera.fov) * 0.05;
+		camera.fov += step;
+	}else{
+		var step = (cameraControls.fov - camera.fov) * 0.1;
+		camera.fov += step;
+	}
+}
+
 function _createBox(x, y, z) {
 
 	var boxSize = 10;

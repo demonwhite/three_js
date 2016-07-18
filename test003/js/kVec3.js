@@ -13,9 +13,9 @@ function KVec3(_r, _id){
 	this.theta = Math.random() * Math.PI * 2;
 	// this.pi = (Math.random()*2 - .5) * Math.PI;
 	this.phi = Math.random() * (this.rangeMax-this.rangeMin) + this.rangeMin;
-	this.SEED = Math.random()-0.5;
+	this.SEED = Math.random()-0.5 / 1000;
 	this.ID = _id;
-	this.FIELD = 10 + ( Math.random() * 20 );  //a force field for keeping away from others
+	this.FIELD = 20 + ( Math.random() * 20 );  //a force field for keeping away from others
 	this.onFFT = false;
 	var _x, _y, _z;
 	_x = this.radius * Math.sin(this.phi) * Math.cos(this.theta);
@@ -54,7 +54,7 @@ KVec3.prototype.movePos = function(){
 	if (this.phi < this.rangeMin || this.phi > this.rangeMax) {
 		this.SEED *= -1;	
 	}else{
-		this.SEED += ( Math.random()-0.5 )/10;
+		this.SEED += ( Math.random()-0.5 )/30;
 	}
 
 	// this.theta += this.velocity * this.SEED;
@@ -64,7 +64,7 @@ KVec3.prototype.movePos = function(){
 	// ** phi 0 - 180 degree 0-PI
 
 
-	this.phi += this.SEED/1000;
+
 	this.theta += this.velocity/2;
 	// this.phi = Math.sin(this.theta/10) * this.rangeMax;
 

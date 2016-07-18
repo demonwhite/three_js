@@ -190,7 +190,7 @@
 	"\/js\/kent_three_js.js": {
 		"fileType": 64,
 		"ignore": 0,
-		"ignoreWasSetByUser": 1,
+		"ignoreWasSetByUser": 0,
 		"inputAbbreviatedPath": "\/js\/kent_three_js.js",
 		"outputAbbreviatedPath": "\/js\/min\/kent_three_js-min.js",
 		"outputPathIsOutsideProject": 0,
@@ -388,32 +388,6 @@
 	],
 "lastSavedByUser": "Wei Hao Chang",
 "manualImportLinks": {
-	"\/js\/kent_three_js.js": [
-		{
-			"followForSyntaxChecking": 1,
-			"linkedFileAbbreviatedPath": "\/js\/soundControl.js",
-			"position": 0,
-			"type": 0
-			},
-		{
-			"followForSyntaxChecking": 1,
-			"linkedFileAbbreviatedPath": "\/js\/SoundObject.js",
-			"position": 1,
-			"type": 0
-			},
-		{
-			"followForSyntaxChecking": 1,
-			"linkedFileAbbreviatedPath": "\/js\/FileLoader.js",
-			"position": 2,
-			"type": 0
-			},
-		{
-			"followForSyntaxChecking": 1,
-			"linkedFileAbbreviatedPath": "\/js\/kVec3.js",
-			"position": 3,
-			"type": 0
-			}
-		]
 	},
 "projectAttributes": {
 	"bowerAbbreviatedPath": "",
