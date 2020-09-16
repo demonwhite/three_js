@@ -1,5 +1,4 @@
 # three_js
 
-Test for pushing 
-
-try again
+## An Audio Visualization Project
+# In progress
