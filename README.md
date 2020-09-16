@@ -1,4 +1,5 @@
-# three_js
+# An Audio Visualization Project
 
-## An Audio Visualization Project
-# In progress
+## made with three.js
+
+### In progress
